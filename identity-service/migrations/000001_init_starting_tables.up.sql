@@ -48,7 +48,8 @@ create table sessions
     active_at timestamp with time zone default current_timestamp not null,
     active_ip_address inet not null,
 
-    -- has session been revoked
+    -- has session been revoked or expired
+    expires_at timestamp with time zone default (current_timestamp + interval '90 days') not null,
     is_revoked boolean default false not null
 );
 
