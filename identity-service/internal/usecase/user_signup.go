@@ -22,28 +22,28 @@ type SignUpOutput struct {
 
 // 2. Determine the dependencies
 // 2.1. SignUpUseCase coordinates domain layer to register a user
-type SignUpUseCase struct {
+type SignUp struct {
 	userRepo  domain.UserRepo
 	pwdHasher domain.PasswordHasher
 }
 
-// 2.2. NewSignUpUseCase is a constructor that handles dependency injection
-func NewSignUpUseCase(userRepo domain.UserRepo, hasher domain.PasswordHasher) *SignUpUseCase {
-	return &SignUpUseCase{
+// 2.2. NewSignUp is a constructor that handles dependency injection
+func NewSignUp(userRepo domain.UserRepo, hasher domain.PasswordHasher) *SignUp {
+	return &SignUp{
 		userRepo:  userRepo,
 		pwdHasher: hasher,
 	}
 }
 
 // 3. Execute runs the actual step-by-step registration business flow
-func (uc *SignUpUseCase) Execute(ctx context.Context, input SignUpInput) (*SignUpOutput, error) {
+func (su *SignUp) Execute(ctx context.Context, input SignUpInput) (*SignUpOutput, error) {
 	// 1. Validate input basic constraints
 	if input.Username == "" || input.Phone == "" || input.Password == "" {
 		return nil, errors.New("required fields were not filled")
 	}
 
 	// 2. Check the domain repository to see if this user already exists
-	exists, err := uc.userRepo.ExistsByPhoneOrUsername(ctx, input.Phone, input.Username)
+	exists, err := su.userRepo.ExistsByPhoneOrUsername(ctx, input.Phone, input.Username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify account uniqueness: %w", err)
 	}
@@ -52,14 +52,14 @@ func (uc *SignUpUseCase) Execute(ctx context.Context, input SignUpInput) (*SignU
 	}
 
 	// 3. Secure the password using our domain's abstract PasswordHasher interface
-	hashedPassword, err := uc.pwdHasher.Hash(input.Password)
+	hashedPassword, err := su.pwdHasher.Hash(input.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process password: %w", err)
 	}
 
 	// 4. Register a new user
 	newUser := domain.NewUser(0, input.Username, input.Phone, hashedPassword)
-	err = uc.userRepo.Create(ctx, newUser)
+	err = su.userRepo.Create(ctx, newUser)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save user: %w", err)
 	}
