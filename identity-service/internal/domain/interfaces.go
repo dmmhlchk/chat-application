@@ -15,7 +15,7 @@ type UserRepo interface {
 }
 
 type SessionRepo interface {
-	FindByUserId(ctx context.Context, userId int) ([]*Session, error)
+	FindAllByUserId(ctx context.Context, userId int) ([]*Session, error)
 	FindByToken(ctx context.Context, refreshToken string) (*Session, error)
 
 	Create(ctx context.Context, session *Session) error
