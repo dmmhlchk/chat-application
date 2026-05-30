@@ -34,7 +34,7 @@ func (ts *TerminateSession) Execute(ctx context.Context, input TerminateSessionI
 		return errors.New("required fields were not filled")
 	}
 
-	session, err := ts.sessionRepo.FindByToken(ctx, input.RefreshToken)
+	session, err := ts.sessionRepo.FindByRefreshTokenHash(ctx, input.RefreshToken)
 	if err != nil {
 		return fmt.Errorf("failed to lookup session: %w", err)
 	}
@@ -45,7 +45,8 @@ func (ts *TerminateSession) Execute(ctx context.Context, input TerminateSessionI
 		return errors.New("unauthorized: you do not own this session")
 	}
 
-	err = ts.sessionRepo.DeleteByToken(ctx, input.RefreshToken)
+	session.Revoke()
+	err = ts.sessionRepo.Update(ctx, session)
 	if err != nil {
 		return fmt.Errorf("failed to revoke session: %w", err)
 	}

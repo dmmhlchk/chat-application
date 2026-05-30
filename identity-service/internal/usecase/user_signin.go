@@ -20,9 +20,9 @@ type SignInInput struct {
 
 // 1.2. SignInOutput defines what data we return to the delivery layer upon success
 type SignInOutput struct {
-	UserId       int
-	AccessToken  string
-	RefreshToken string
+	UserId           int
+	AccessToken      string
+	RefreshTokenHash string
 }
 
 // 2. Determine the dependencies
@@ -76,7 +76,7 @@ func (si *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 
 	// 4. Generate auth tokens
 	expiration := 30 * 24 * time.Hour
-	accessToken, refreshToken, err := si.tokenGen.GeneratePair(user.ID, expiration)
+	accessToken, refreshTokenHash, err := si.tokenGen.GeneratePair(user.ID, expiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate authentication tokens: %w", err)
 	}
@@ -84,7 +84,7 @@ func (si *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 	// 5. Register a new session
 	newSession := domain.NewSession(
 		user.ID,
-		refreshToken,
+		refreshTokenHash,
 		input.NotificationToken,
 		input.Device,
 		input.IPAddress,
@@ -99,8 +99,8 @@ func (si *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 
 	// 7. Return success
 	return &SignInOutput{
-		UserId:       user.ID,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		UserId:           user.ID,
+		AccessToken:      accessToken,
+		RefreshTokenHash: refreshTokenHash,
 	}, nil
 }

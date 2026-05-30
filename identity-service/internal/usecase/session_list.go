@@ -10,8 +10,8 @@ import (
 // 1. Determine Input and Output data
 // 1.1. SessionListInput defines the data required to retrieve a list of user sessions
 type SessionListInput struct {
-	UserID              int
-	CurrentRefreshToken string
+	UserID                  int
+	CurrentRefreshTokenHash string
 }
 
 // 1.2. SessionListOutput defines what data we return to the delivery layer upon success
@@ -50,7 +50,7 @@ func (sl *SessionList) Execute(ctx context.Context, input SessionListInput) (*Se
 
 	items := make([]SessionItem, 0, len(domainSessions))
 	for _, s := range domainSessions {
-		isCurrent := s.RefreshToken == input.CurrentRefreshToken
+		isCurrent := s.RefreshTokenHash == input.CurrentRefreshTokenHash
 
 		items = append(items, SessionItem{
 			ID:        s.ID,

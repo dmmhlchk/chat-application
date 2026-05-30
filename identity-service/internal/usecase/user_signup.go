@@ -58,7 +58,11 @@ func (su *SignUp) Execute(ctx context.Context, input SignUpInput) (*SignUpOutput
 	}
 
 	// 4. Register a new user
-	newUser := domain.NewUser(0, input.Username, input.Phone, hashedPassword)
+	newUser, err := domain.NewUser(0, input.Username, input.Phone, hashedPassword)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save user: %w", err)
+	}
+
 	err = su.userRepo.Create(ctx, newUser)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save user: %w", err)

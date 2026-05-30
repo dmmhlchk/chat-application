@@ -2,7 +2,14 @@ package domain
 
 import (
 	"context"
+	"errors"
+	"strings"
 	"time"
+)
+
+var (
+	ErrInvalidUsername = errors.New("username cannot be empty")
+	ErrInvalidPhone    = errors.New("invalid phone number format")
 )
 
 type User struct {
@@ -14,15 +21,24 @@ type User struct {
 	UpdatedAt    time.Time
 }
 
-func NewUser(id int, username, phone, passwordHash string) *User {
+func NewUser(id int, username, phone, passwordHash string) (*User, error) {
+	// Simple invariant validation
+	if strings.TrimSpace(username) == "" {
+		return nil, ErrInvalidUsername
+	}
+	if strings.TrimSpace(phone) == "" {
+		return nil, ErrInvalidPhone
+	}
+
+	now := time.Now().UTC()
 	return &User{
 		ID:           id,
 		Username:     username,
 		Phone:        phone,
 		PasswordHash: passwordHash,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-	}
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}, nil
 }
 
 type UserRepo interface {
@@ -34,5 +50,6 @@ type UserRepo interface {
 
 	Create(ctx context.Context, user *User) error
 	Update(ctx context.Context, user *User) error
-	Delete(ctx context.Context, user *User) error
+
+	Delete(ctx context.Context, id int) error
 }

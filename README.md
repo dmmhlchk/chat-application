@@ -12,7 +12,7 @@ Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
 
 - **Session Management**: View a list of active devices or locations currently logged into their account and remotely log out of specific devices.
 
-- **Data Export & Deletion**: Request a download of all personal data stored by the service or trigger an account deletion.
+- **Data Deletion**: Trigger an account deletion.
 
 ## Core Messenger Capabilities 
 - **One-on-One Messaging**: Initiate private, low-latency text conversations with a single contact.
