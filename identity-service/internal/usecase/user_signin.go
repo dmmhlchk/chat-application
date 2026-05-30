@@ -75,13 +75,13 @@ func (si *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 	}
 
 	// 4. Generate auth tokens
-	accessToken, refreshToken, err := si.tokenGen.GeneratePair(user.ID)
+	expiration := 30 * 24 * time.Hour
+	accessToken, refreshToken, err := si.tokenGen.GeneratePair(user.ID, expiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate authentication tokens: %w", err)
 	}
 
 	// 5. Register a new session
-	expiration := 30 * 24 * time.Hour
 	newSession := domain.NewSession(
 		user.ID,
 		refreshToken,

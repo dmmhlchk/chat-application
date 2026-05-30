@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Device struct {
 	Hash     string
@@ -47,10 +50,12 @@ func NewSession(
 	}
 }
 
-func (s *Session) IsValid() bool {
-	return !s.IsRevoked && time.Now().Before(s.ExpiresAt)
-}
+type SessionRepo interface {
+	FindByID(ctx context.Context, id int) (*Session, error)
+	FindByToken(ctx context.Context, refreshToken string) (*Session, error)
+	FindAllByUserId(ctx context.Context, userId int) ([]*Session, error)
 
-func (s *Session) Revoke() {
-	s.IsRevoked = true
+	Create(ctx context.Context, session *Session) error
+	Update(ctx context.Context, session *Session) error
+	DeleteByToken(ctx context.Context, refreshToken string) error
 }
