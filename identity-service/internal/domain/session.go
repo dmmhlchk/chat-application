@@ -61,11 +61,9 @@ func (s *Session) Revoke() {
 }
 
 type SessionRepo interface {
-	FindByRefreshTokenHash(ctx context.Context, refreshTokenHash string) (*Session, error)
-	FindAllByUserId(ctx context.Context, userId int) ([]*Session, error)
+	FindByID(ctx context.Context, id int) (*Session, error)
+	FindAllByUserID(ctx context.Context, userId int) ([]Session, error)
 
 	Create(ctx context.Context, session *Session) error
 	Update(ctx context.Context, session *Session) error
-
-	DeleteAllByUserID(ctx context.Context, userId int) error
 }

@@ -52,13 +52,7 @@ func (uc *UserDelete) Execute(ctx context.Context, input UserDeleteInput) error 
 		return errors.New("incorrect password")
 	}
 
-	// 3. Clear all active tracking sessions (Log out of all devices)
-	err = uc.sessionRepo.DeleteAllByUserID(ctx, input.UserID)
-	if err != nil {
-		return fmt.Errorf("failed to clear associated sessions: %w", err)
-	}
-
-	// 4. Delete the primary user profile entity
+	// 3. Delete the primary user profile entity
 	err = uc.userRepo.Delete(ctx, input.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to finalize user erasure: %w", err)

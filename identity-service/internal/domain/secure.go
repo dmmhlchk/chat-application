@@ -16,10 +16,10 @@ type TokenGenerator interface {
 	GeneratePair(UserID int, ttl time.Duration) (string, string, error)
 
 	GenerateRefreshTokenHash(userID int, ttl time.Duration) (string, error)
-	ValidateRefreshTokenHash(token string) (int, error) // return UserID else error
+	ValidateRefreshTokenHash(token string) (int, int, error) // return SessionID and UserID else error
 
 	GenerateAccessToken(userID int, ttl time.Duration) (string, error)
-	ValidateAccessToken(token string) (int, error) // return UserID else error
+	ValidateAccessToken(token string) (int, int, error) // return SessionID and UserID else error
 }
 
 // OTPGenerator generates an un-guessable string of digits

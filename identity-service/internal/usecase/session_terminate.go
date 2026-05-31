@@ -16,11 +16,13 @@ type TerminateSessionInput struct {
 // 2. Determine the dependencies
 type TerminateSession struct {
 	sessionRepo domain.SessionRepo
+	tokenGen    domain.TokenGenerator
 }
 
-func NewTerminateSession(sessionRepo domain.SessionRepo) *TerminateSession {
+func NewTerminateSession(sessionRepo domain.SessionRepo, tokenGen domain.TokenGenerator) *TerminateSession {
 	return &TerminateSession{
 		sessionRepo: sessionRepo,
+		tokenGen:    tokenGen,
 	}
 }
 
@@ -31,7 +33,17 @@ func (uc *TerminateSession) Execute(ctx context.Context, input TerminateSessionI
 		return errors.New("required fields were not filled")
 	}
 
-	session, err := uc.sessionRepo.FindByRefreshTokenHash(ctx, input.RefreshToken)
+	// 2. Retrive a token ID
+	sessionId, userId, err := uc.tokenGen.ValidateRefreshTokenHash(input.RefreshToken)
+	if err != nil {
+		return fmt.Errorf("failed to validate a token: %w", err)
+	}
+	if userId != input.UserID {
+		return errors.New("unauthorized: you do not own this session")
+	}
+
+	// 3. Find a token in DB and check if we can terminate the session or not
+	session, err := uc.sessionRepo.FindByID(ctx, sessionId)
 	if err != nil {
 		return fmt.Errorf("failed to lookup session: %w", err)
 	}
@@ -42,6 +54,7 @@ func (uc *TerminateSession) Execute(ctx context.Context, input TerminateSessionI
 		return errors.New("unauthorized: you do not own this session")
 	}
 
+	// 4. Revoke the session
 	session.Revoke()
 	err = uc.sessionRepo.Update(ctx, session)
 	if err != nil {

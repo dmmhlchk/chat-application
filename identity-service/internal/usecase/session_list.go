@@ -39,7 +39,7 @@ func NewSessionList(sessionRepo domain.SessionRepo) *SessionList {
 // 3. Business flow of retrieving a list of user sessions
 func (uc *SessionList) Execute(ctx context.Context, input SessionListInput) (*SessionListOutput, error) {
 	// Retrieving all active sessions by user id
-	domainSessions, err := uc.sessionRepo.FindAllByUserId(ctx, input.UserID)
+	domainSessions, err := uc.sessionRepo.FindAllByUserID(ctx, input.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve active sessions: %w", err)
 	}
