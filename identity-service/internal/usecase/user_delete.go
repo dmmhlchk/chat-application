@@ -7,12 +7,13 @@ import (
 	"identity-service/internal/domain"
 )
 
+// 1. Determine the input
 type UserDeleteInput struct {
 	UserID   int
 	Password string
 }
 
-// UserDelete coordinates the complete wiping of an identity profile.
+// 2. Determine the dependencies
 type UserDelete struct {
 	userRepo    domain.UserRepo
 	sessionRepo domain.SessionRepo
@@ -31,10 +32,10 @@ func NewUserDelete(
 	}
 }
 
-// Execute performs security re-authentication and removes user presence.
-func (ud *UserDelete) Execute(ctx context.Context, input UserDeleteInput) error {
+// 3. Business flow of deleting user data
+func (uc *UserDelete) Execute(ctx context.Context, input UserDeleteInput) error {
 	// 1. Fetch user data
-	user, err := ud.userRepo.FindByID(ctx, input.UserID)
+	user, err := uc.userRepo.FindByID(ctx, input.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to look up account: %w", err)
 	}
@@ -43,7 +44,7 @@ func (ud *UserDelete) Execute(ctx context.Context, input UserDeleteInput) error 
 	}
 
 	// 2. Compare passwords
-	match, err := ud.pwdHasher.Compare(user.PasswordHash, input.Password)
+	match, err := uc.pwdHasher.Compare(user.PasswordHash, input.Password)
 	if err != nil {
 		return fmt.Errorf("failed to compare passwords: %w", err)
 	}
@@ -52,13 +53,13 @@ func (ud *UserDelete) Execute(ctx context.Context, input UserDeleteInput) error 
 	}
 
 	// 3. Clear all active tracking sessions (Log out of all devices)
-	err = ud.sessionRepo.DeleteAllByUserID(ctx, input.UserID)
+	err = uc.sessionRepo.DeleteAllByUserID(ctx, input.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to clear associated sessions: %w", err)
 	}
 
 	// 4. Delete the primary user profile entity
-	err = ud.userRepo.Delete(ctx, input.UserID)
+	err = uc.userRepo.Delete(ctx, input.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to finalize user erasure: %w", err)
 	}

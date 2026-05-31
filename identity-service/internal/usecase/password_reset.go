@@ -7,14 +7,17 @@ import (
 	"identity-service/internal/domain"
 )
 
-// This use case was separated on 2 parts: request (send sms code) and confirm (verify sms code + reset password)
+// This use case was separated by 2 parts: request (send sms code) and confirm (verify sms code + reset the password)
 
+// Part 1:
 // Request: send otp code via sms
 
+// 1. Determine the input
 type PasswordResetRequestInput struct {
 	Phone string
 }
 
+// 2. Determine the dependencies
 type PasswordResetRequest struct {
 	userRepo     domain.UserRepo
 	otpGenerator domain.OTPGenerator
@@ -36,32 +39,31 @@ func NewPasswordResetRequest(
 	}
 }
 
-func (prr *PasswordResetRequest) Execute(ctx context.Context, input PasswordResetRequestInput) error {
+// 3. Busines flow of the reseting password (part 1: send an sms code to the user)
+func (uc *PasswordResetRequest) Execute(ctx context.Context, input PasswordResetRequestInput) error {
 	// 1. Verify that the user actually exists by phone number
-	user, err := prr.userRepo.FindByPhone(ctx, input.Phone)
+	user, err := uc.userRepo.FindByPhone(ctx, input.Phone)
 	if err != nil {
 		return fmt.Errorf("failed to look up account: %w", err)
 	}
 	if user == nil {
-		// Security tip: Return nil or a generic success to prevent phone scraping attacks,
-		// or explicitly fail if your application UX demands showing an error.
 		return errors.New("phone number not registered")
 	}
 
 	// 2. Generate a secure 6-digit numeric string
-	code, err := prr.otpGenerator.Generate(6)
+	code, err := uc.otpGenerator.Generate(6)
 	if err != nil {
 		return fmt.Errorf("failed to generate verification token: %w", err)
 	}
 
 	// 3. Persist the OTP with an expiration (e.g., 5 mins) inside Redis via the repository
-	err = prr.codeHandler.Save(ctx, input.Phone, code)
+	err = uc.codeHandler.Save(ctx, input.Phone, code)
 	if err != nil {
 		return fmt.Errorf("failed to process request: %w", err)
 	}
 
 	// 4. Send the SMS via your infrastructure adapter
-	err = prr.smsProvider.SendOTP(ctx, input.Phone, code)
+	err = uc.smsProvider.SendOTP(ctx, input.Phone, code)
 	if err != nil {
 		return fmt.Errorf("failed to dispatch text message: %w", err)
 	}
@@ -69,14 +71,17 @@ func (prr *PasswordResetRequest) Execute(ctx context.Context, input PasswordRese
 	return nil
 }
 
-// Confirm: verify otp code and reset password
+// Part 2:
+// Confirm: verify sms code and reset the password
 
+// 1. Determine the input
 type ResetConfirmInput struct {
 	Phone       string
 	Code        string
 	NewPassword string
 }
 
+// 2. Determine the dependencies
 type PasswordResetConfirm struct {
 	userRepo    domain.UserRepo
 	codeHandler domain.CodeHandler
@@ -95,13 +100,14 @@ func NewPasswordResetConfirm(
 	}
 }
 
+// 3. Busines flow of the reseting password (part 2: verify sms code + reset the password)
 func (uc *PasswordResetConfirm) Execute(ctx context.Context, input ResetConfirmInput) error {
 	// 1. Validate password strength constraints
 	if len(input.NewPassword) < 8 {
 		return errors.New("password must be at least 8 characters long")
 	}
 
-	// 2. Ask the code repository to verify the code matches what we stored
+	// 2. Verify the code matches what we stored
 	isValid, err := uc.codeHandler.Verify(ctx, input.Phone, input.Code)
 	if err != nil || !isValid {
 		return errors.New("invalid or expired verification code")

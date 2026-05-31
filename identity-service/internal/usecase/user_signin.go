@@ -8,8 +8,7 @@ import (
 	"time"
 )
 
-// 1. Determine Input and Output data
-// 1.1. SignInInput defines the data required to identify the user
+// 1. Determine the input and the output
 type SignInInput struct {
 	Phone             string
 	Password          string
@@ -18,7 +17,6 @@ type SignInInput struct {
 	IPAddress         string
 }
 
-// 1.2. SignInOutput defines what data we return to the delivery layer upon success
 type SignInOutput struct {
 	UserId           int
 	AccessToken      string
@@ -26,7 +24,6 @@ type SignInOutput struct {
 }
 
 // 2. Determine the dependencies
-// 2.1. SignIn coordinates domain layer to sign in a user
 type SignIn struct {
 	userRepo    domain.UserRepo
 	sessionRepo domain.SessionRepo
@@ -34,7 +31,6 @@ type SignIn struct {
 	tokenGen    domain.TokenGenerator
 }
 
-// 2.2. NewSignIn is a constructor that handles dependency injection
 func NewSignIn(
 	userRepo domain.UserRepo,
 	sessionRepo domain.SessionRepo,
@@ -49,15 +45,15 @@ func NewSignIn(
 	}
 }
 
-// 3. Execute runs the actual step-by-step sign in business flow
-func (si *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput, error) {
+// 3. Business flow of user authentication
+func (uc *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput, error) {
 	// 1. Validate input basic constraints
 	if input.Phone == "" || input.Password == "" {
 		return nil, errors.New("required fields were not filled")
 	}
 
 	// 2. Find a user by phone
-	user, err := si.userRepo.FindByPhone(ctx, input.Phone)
+	user, err := uc.userRepo.FindByPhone(ctx, input.Phone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find a user by phone number: %w", err)
 	}
@@ -66,7 +62,7 @@ func (si *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 	}
 
 	// 3. Compare passwords
-	match, err := si.pwdHasher.Compare(user.PasswordHash, input.Password)
+	match, err := uc.pwdHasher.Compare(user.PasswordHash, input.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare passwords: %w", err)
 	}
@@ -76,7 +72,7 @@ func (si *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 
 	// 4. Generate auth tokens
 	expiration := 30 * 24 * time.Hour
-	accessToken, refreshTokenHash, err := si.tokenGen.GeneratePair(user.ID, expiration)
+	accessToken, refreshTokenHash, err := uc.tokenGen.GeneratePair(user.ID, expiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate authentication tokens: %w", err)
 	}
@@ -92,7 +88,7 @@ func (si *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 	)
 
 	// 6. Save session to database
-	err = si.sessionRepo.Create(ctx, newSession)
+	err = uc.sessionRepo.Create(ctx, newSession)
 	if err != nil {
 		return nil, fmt.Errorf("failed to establish secure session: %w", err)
 	}

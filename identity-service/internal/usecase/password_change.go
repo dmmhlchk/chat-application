@@ -7,8 +7,7 @@ import (
 	"identity-service/internal/domain"
 )
 
-// 1. Determine Input
-// 1.1. ChangePasswordInput defines the data required to change user password
+// 1. Determine the input
 type ChangePasswordInput struct {
 	UserID          int
 	CurrentPassword string
@@ -16,13 +15,11 @@ type ChangePasswordInput struct {
 }
 
 // 2. Determine the dependencies
-// 2.1. ChangePassword coordinates domain layer to change a password
 type ChangePassword struct {
 	userRepo  domain.UserRepo
 	pwdHasher domain.PasswordHasher
 }
 
-// 2.2. NewChangePassword is a constructor that handles dependency injection
 func NewChangePassword(userRepo domain.UserRepo, pwdHasher domain.PasswordHasher) *ChangePassword {
 	return &ChangePassword{
 		userRepo:  userRepo,
@@ -30,15 +27,15 @@ func NewChangePassword(userRepo domain.UserRepo, pwdHasher domain.PasswordHasher
 	}
 }
 
-// 3. Execute runs the actual step-by-step password change business flow
-func (cp *ChangePassword) Execute(ctx context.Context, input ChangePasswordInput) error {
+// 3. Business flow of changing password
+func (uc *ChangePassword) Execute(ctx context.Context, input ChangePasswordInput) error {
 	// 1. Validate input basic constraints
 	if input.UserID == 0 || input.CurrentPassword == "" || input.NewPassword == "" {
 		return errors.New("required fields were not filled")
 	}
 
 	// 2. Find a user by phone
-	user, err := cp.userRepo.FindByID(ctx, input.UserID)
+	user, err := uc.userRepo.FindByID(ctx, input.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to find a user: %w", err)
 	}
@@ -47,7 +44,7 @@ func (cp *ChangePassword) Execute(ctx context.Context, input ChangePasswordInput
 	}
 
 	// 3. Compare passwords + Prevent the user from reusing their exact same password
-	match, err := cp.pwdHasher.Compare(user.PasswordHash, input.CurrentPassword)
+	match, err := uc.pwdHasher.Compare(user.PasswordHash, input.CurrentPassword)
 	if err != nil {
 		return fmt.Errorf("failed to compare passwords: %w", err)
 	}
@@ -59,14 +56,14 @@ func (cp *ChangePassword) Execute(ctx context.Context, input ChangePasswordInput
 	}
 
 	// 4. Generate hash for the new password
-	hashedPassword, err := cp.pwdHasher.Hash(input.NewPassword)
+	hashedPassword, err := uc.pwdHasher.Hash(input.NewPassword)
 	if err != nil {
 		return fmt.Errorf("failed to process password: %w", err)
 	}
 
 	// 5. Change user password
 	user.PasswordHash = hashedPassword
-	err = cp.userRepo.Update(ctx, user)
+	err = uc.userRepo.Update(ctx, user)
 	if err != nil {
 		return fmt.Errorf("failed to save new password: %w", err)
 	}
