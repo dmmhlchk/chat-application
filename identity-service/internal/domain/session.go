@@ -13,8 +13,8 @@ type Device struct {
 }
 
 type Session struct {
-	ID                int
-	UserID            int
+	ID                string
+	UserID            string
 	RefreshTokenHash  string
 	NotificationToken string
 	Device            Device
@@ -27,7 +27,8 @@ type Session struct {
 }
 
 func NewSession(
-	userId int,
+	sessionID string,
+	userID string,
 	refreshTokenHash string,
 	notificationToken string,
 	device Device,
@@ -37,7 +38,8 @@ func NewSession(
 	now := time.Now().UTC()
 
 	return &Session{
-		UserID:            userId,
+		ID:                sessionID,
+		UserID:            userID,
 		RefreshTokenHash:  refreshTokenHash,
 		NotificationToken: notificationToken,
 		Device:            device,
@@ -50,19 +52,14 @@ func NewSession(
 	}
 }
 
-// IsValid checks if the session is active and not expired
-func (s *Session) IsValid() bool {
-	return !s.IsRevoked && !time.Now().UTC().After(s.ExpiresAt)
-}
+type SessionRepository interface {
+	FindByID(ctx context.Context, sessionID string) (*Session, error) // return active session
+	FindAll(ctx context.Context, userID string) ([]Session, error)    // return active sessions
 
-// Revoke changes the session state to revoked
-func (s *Session) Revoke() {
-	s.IsRevoked = true
-}
+	NewUUID() string
 
-type SessionRepo interface {
-	FindByID(ctx context.Context, id int) (*Session, error)
-	FindAllByUserID(ctx context.Context, userId int) ([]Session, error)
+	TerminateByID(ctx context.Context, sessionID string) error
+	TerminateAll(ctx context.Context, userID string) error
 
 	Create(ctx context.Context, session *Session) error
 	Update(ctx context.Context, session *Session) error

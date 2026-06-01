@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"identity-service/internal/domain"
+
+	"github.com/google/uuid"
 )
 
-var _ domain.UserRepo = (*UserRepository)(nil)
+var _ domain.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
 	db *sql.DB
@@ -29,14 +31,14 @@ func (r *UserRepository) ExistsByPhoneOrUsername(ctx context.Context, phone, use
 	return exists, nil
 }
 
-func (r *UserRepository) FindByID(ctx context.Context, id int) (*domain.User, error) {
+func (r *UserRepository) FindByID(ctx context.Context, userID string) (*domain.User, error) {
 	query := `
 		select id, username, phone, password_hash 
 		from users 
 		where id = $1`
 
 	var u domain.User
-	err := r.db.QueryRowContext(ctx, query, id).Scan(&u)
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(&u)
 	if err != nil {
 		return nil, fmt.Errorf("postgres find by id failed: %w", err)
 	}
@@ -74,6 +76,10 @@ func (r *UserRepository) FindByPhone(ctx context.Context, phone string) (*domain
 	return &user, nil
 }
 
+func (r *UserRepository) NewUUID() string {
+	return uuid.New().String()
+}
+
 func (r *UserRepository) Create(ctx context.Context, u *domain.User) error {
 	query := `
 		insert into users (username, password, phone) 
@@ -107,10 +113,10 @@ func (r *UserRepository) Update(ctx context.Context, u *domain.User) error {
 	return nil
 }
 
-func (r *UserRepository) Delete(ctx context.Context, id int) error {
+func (r *UserRepository) Delete(ctx context.Context, userID string) error {
 	query := `delete from users where id = $1`
 
-	_, err := r.db.ExecContext(ctx, query, id)
+	_, err := r.db.ExecContext(ctx, query, userID)
 	if err != nil {
 		return fmt.Errorf("postgres user deletion failed: %w", err)
 	}

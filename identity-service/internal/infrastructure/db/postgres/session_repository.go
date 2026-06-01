@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"identity-service/internal/domain"
+
+	"github.com/google/uuid"
 )
 
-var _ domain.SessionRepo = (*SessionRepository)(nil)
+var _ domain.SessionRepository = (*SessionRepository)(nil)
 
 type SessionRepository struct {
 	db *sql.DB
@@ -17,7 +19,7 @@ func NewSessionRepository(db *sql.DB) *SessionRepository {
 	return &SessionRepository{db: db}
 }
 
-func (r *SessionRepository) FindByID(ctx context.Context, id int) (*domain.Session, error) {
+func (r *SessionRepository) FindByID(ctx context.Context, sessionID string) (*domain.Session, error) {
 	query := `
 		select 
 			id, user_id, 
@@ -27,10 +29,12 @@ func (r *SessionRepository) FindByID(ctx context.Context, id int) (*domain.Sessi
 			created_at, active_at, 
 			expires_at, is_revoked
 		from sessions 
-		where id = $1`
+		where id = $1
+			and is_revoked = false
+			and expires > now()`
 
 	var s domain.Session
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
+	err := r.db.QueryRowContext(ctx, query, sessionID).Scan(
 		&s.ID, &s.UserID,
 		&s.RefreshTokenHash, &s.NotificationToken,
 		&s.Device.Hash, &s.Device.Name, &s.Device.Version, &s.Device.Platform,
@@ -45,7 +49,7 @@ func (r *SessionRepository) FindByID(ctx context.Context, id int) (*domain.Sessi
 	return &s, nil
 }
 
-func (r *SessionRepository) FindAllByUserID(ctx context.Context, userId int) ([]domain.Session, error) {
+func (r *SessionRepository) FindAll(ctx context.Context, userID string) ([]domain.Session, error) {
 	query := `
 		select 
 			id, user_id, 
@@ -60,7 +64,7 @@ func (r *SessionRepository) FindAllByUserID(ctx context.Context, userId int) ([]
 			and expires > now()
 		order by active_at desc`
 
-	rows, err := r.db.QueryContext(ctx, query, userId)
+	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("postgres find all sessions failed: %w", err)
 	}
@@ -70,14 +74,18 @@ func (r *SessionRepository) FindAllByUserID(ctx context.Context, userId int) ([]
 	var sessions []domain.Session
 	for rows.Next() {
 		var s domain.Session
-		err := rows.Scan(
-			&s.ID, &s.UserID, &s.RefreshTokenHash, &s.NotificationToken,
+		err = rows.Scan(
+			&s.ID, &s.UserID,
+			&s.RefreshTokenHash, &s.NotificationToken,
 			&s.Device.Hash, &s.Device.Name, &s.Device.Version, &s.Device.Platform,
-			&s.CreatedIPAddress, &s.ActiveIPAddress, &s.CreatedAt, &s.ActiveAt, &s.ExpiresAt, &s.IsRevoked,
+			&s.CreatedIPAddress, &s.ActiveIPAddress,
+			&s.CreatedAt, &s.ActiveAt,
+			&s.ExpiresAt, &s.IsRevoked,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("postgres scanning session row failed: %w", err)
 		}
+
 		sessions = append(sessions, s)
 	}
 
@@ -86,7 +94,40 @@ func (r *SessionRepository) FindAllByUserID(ctx context.Context, userId int) ([]
 	}
 
 	return sessions, nil
+}
 
+func (r *SessionRepository) NewUUID() string {
+	return uuid.New().String()
+}
+
+func (r *SessionRepository) TerminateByID(ctx context.Context, sessionID string) error {
+	query := `
+		update sessions
+		set is_revoked = true
+		where id = $1`
+
+	_, err := r.db.ExecContext(ctx, query, sessionID)
+
+	if err != nil {
+		return fmt.Errorf("postgres session insertion failed: %w", err)
+	}
+
+	return nil
+}
+
+func (r *SessionRepository) TerminateAll(ctx context.Context, userID string) error {
+	query := `
+		update sessions
+		set is_revoked = true
+		where user_id = $1`
+
+	_, err := r.db.ExecContext(ctx, query, userID)
+
+	if err != nil {
+		return fmt.Errorf("postgres session insertion failed: %w", err)
+	}
+
+	return nil
 }
 
 func (r *SessionRepository) Create(ctx context.Context, s *domain.Session) error {

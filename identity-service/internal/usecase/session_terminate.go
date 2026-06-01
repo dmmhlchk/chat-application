@@ -9,17 +9,17 @@ import (
 
 // 1. Determine the input
 type TerminateSessionInput struct {
-	UserID       int
+	UserID       string
 	RefreshToken string
 }
 
 // 2. Determine the dependencies
 type TerminateSession struct {
-	sessionRepo domain.SessionRepo
+	sessionRepo domain.SessionRepository
 	tokenGen    domain.TokenGenerator
 }
 
-func NewTerminateSession(sessionRepo domain.SessionRepo, tokenGen domain.TokenGenerator) *TerminateSession {
+func NewTerminateSession(sessionRepo domain.SessionRepository, tokenGen domain.TokenGenerator) *TerminateSession {
 	return &TerminateSession{
 		sessionRepo: sessionRepo,
 		tokenGen:    tokenGen,
@@ -29,34 +29,33 @@ func NewTerminateSession(sessionRepo domain.SessionRepo, tokenGen domain.TokenGe
 // 3. Business flow of session termination
 func (uc *TerminateSession) Execute(ctx context.Context, input TerminateSessionInput) error {
 	// 1. Validate input basic constraints
-	if input.UserID == 0 || input.RefreshToken == "" {
+	if input.UserID == "" || input.RefreshToken == "" {
 		return errors.New("required fields were not filled")
 	}
 
 	// 2. Retrive a token ID
-	sessionId, userId, err := uc.tokenGen.ValidateRefreshTokenHash(input.RefreshToken)
+	userID, sessionID, err := uc.tokenGen.ValidateToken(input.RefreshToken)
 	if err != nil {
 		return fmt.Errorf("failed to validate a token: %w", err)
 	}
-	if userId != input.UserID {
+	if userID != input.UserID {
 		return errors.New("unauthorized: you do not own this session")
 	}
 
 	// 3. Find a token in DB and check if we can terminate the session or not
-	session, err := uc.sessionRepo.FindByID(ctx, sessionId)
+	session, err := uc.sessionRepo.FindByID(ctx, sessionID)
 	if err != nil {
 		return fmt.Errorf("failed to lookup session: %w", err)
 	}
 	if session == nil {
 		return errors.New("session not found or already terminated")
 	}
-	if session.UserID != input.UserID {
+	if session.ID != sessionID {
 		return errors.New("unauthorized: you do not own this session")
 	}
 
 	// 4. Revoke the session
-	session.Revoke()
-	err = uc.sessionRepo.Update(ctx, session)
+	err = uc.sessionRepo.TerminateByID(ctx, sessionID)
 	if err != nil {
 		return fmt.Errorf("failed to revoke session: %w", err)
 	}

@@ -19,23 +19,23 @@ type SignUpRequestInput struct {
 
 // 2. Determine the dependencies
 type SignUpRequest struct {
-	userRepo     domain.UserRepo
-	otpGenerator domain.OTPGenerator
-	codeHandler  domain.CodeHandler
-	smsProvider  domain.SMSProvider
+	userRepo    domain.UserRepository
+	smsProvider domain.SMSProvider
+	otpGen      domain.OTPGenerator
+	otpRepo     domain.OTPRepository
 }
 
 func NewSignUpRequest(
-	userRepo domain.UserRepo,
-	otpGenerator domain.OTPGenerator,
-	codeHandler domain.CodeHandler,
+	userRepo domain.UserRepository,
 	smsProvider domain.SMSProvider,
+	otpGen domain.OTPGenerator,
+	otpRepo domain.OTPRepository,
 ) *SignUpRequest {
 	return &SignUpRequest{
-		userRepo:     userRepo,
-		otpGenerator: otpGenerator,
-		codeHandler:  codeHandler,
-		smsProvider:  smsProvider,
+		userRepo:    userRepo,
+		smsProvider: smsProvider,
+		otpGen:      otpGen,
+		otpRepo:     otpRepo,
 	}
 }
 
@@ -51,13 +51,13 @@ func (uc *SignUpRequest) Execute(ctx context.Context, input SignUpRequestInput) 
 	}
 
 	// 2. Generate a secure 6-digit numeric string
-	code, err := uc.otpGenerator.Generate(6)
+	code, err := uc.otpGen.Generate(6)
 	if err != nil {
 		return fmt.Errorf("failed to generate verification token: %w", err)
 	}
 
 	// 3. Persist the OTP with an expiration
-	err = uc.codeHandler.Save(ctx, input.Phone, code)
+	err = uc.otpRepo.Save(ctx, input.Phone, code)
 	if err != nil {
 		return fmt.Errorf("failed to process request: %w", err)
 	}
@@ -82,70 +82,64 @@ type SignUpConfirmInput struct {
 	Password string
 }
 
-type SignUpConfirmOutput struct {
-	UserId int
-}
-
 // 2. Determine the dependencies
 type SignUpConfirm struct {
-	userRepo    domain.UserRepo
-	codeHandler domain.CodeHandler
-	pwdHasher   domain.PasswordHasher
+	userRepo  domain.UserRepository
+	otpRepo   domain.OTPRepository
+	pwdHasher domain.PasswordHasher
 }
 
 func NewSignUpConfirm(
-	userRepo domain.UserRepo,
-	codeHandler domain.CodeHandler,
+	userRepo domain.UserRepository,
+	otpRepo domain.OTPRepository,
 	hasher domain.PasswordHasher,
 ) *SignUpConfirm {
 	return &SignUpConfirm{
-		userRepo:    userRepo,
-		codeHandler: codeHandler,
-		pwdHasher:   hasher,
+		userRepo:  userRepo,
+		otpRepo:   otpRepo,
+		pwdHasher: hasher,
 	}
 }
 
 // 3. Business flow of user registration (part 2: verify sms code + register a new user)
-func (uc *SignUpConfirm) Execute(ctx context.Context, input SignUpConfirmInput) (*SignUpConfirmOutput, error) {
+func (uc *SignUpConfirm) Execute(ctx context.Context, input SignUpConfirmInput) error {
 	// 1. Validate input basic constraints
 	if input.Username == "" || input.Phone == "" || input.Password == "" {
-		return nil, errors.New("required fields were not filled")
+		return errors.New("required fields were not filled")
 	}
 
 	// 2. Verify the code matches what we stored
-	isValid, err := uc.codeHandler.Verify(ctx, input.Phone, input.Code)
+	isValid, err := uc.otpRepo.Verify(ctx, input.Phone, input.Code)
 	if err != nil || !isValid {
-		return nil, errors.New("invalid or expired verification code")
+		return errors.New("invalid or expired verification code")
 	}
 
 	// 3. Check the domain repository to see if this user already exists
 	exists, err := uc.userRepo.ExistsByPhoneOrUsername(ctx, input.Phone, input.Username)
 	if err != nil {
-		return nil, fmt.Errorf("failed to verify account uniqueness: %w", err)
+		return fmt.Errorf("failed to verify account uniqueness: %w", err)
 	}
 	if exists {
-		return nil, errors.New("phone number or username is already registered")
+		return errors.New("phone number or username is already registered")
 	}
 
 	// 4. Secure the password using our domain's abstract PasswordHasher interface
 	hashedPassword, err := uc.pwdHasher.Hash(input.Password)
 	if err != nil {
-		return nil, fmt.Errorf("failed to process password: %w", err)
+		return fmt.Errorf("failed to process password: %w", err)
 	}
 
 	// 5. Register a new user
-	newUser, err := domain.NewUser(0, input.Username, input.Phone, hashedPassword)
+	userID := uc.userRepo.NewUUID()
+	user, err := domain.NewUser(userID, input.Username, input.Phone, hashedPassword)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save user: %w", err)
+		return fmt.Errorf("failed to save user: %w", err)
 	}
 
-	err = uc.userRepo.Create(ctx, newUser)
+	err = uc.userRepo.Create(ctx, user)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save user: %w", err)
+		return fmt.Errorf("failed to save user: %w", err)
 	}
 
-	// 6. Return success
-	return &SignUpConfirmOutput{
-		UserId: newUser.ID,
-	}, nil
+	return nil
 }

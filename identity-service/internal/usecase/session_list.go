@@ -9,12 +9,12 @@ import (
 
 // 1. Determine the input and the output
 type SessionListInput struct {
-	UserID                  int
-	CurrentRefreshTokenHash string
+	UserID              string
+	CurrentRefreshToken string
 }
 
 type SessionItem struct {
-	ID        int           `json:"id"`
+	ID        string        `json:"id"`
 	Device    domain.Device `json:"device"`
 	IPAddress string        `json:"ip_address"`
 	IsCurrent bool          `json:"is_current"`
@@ -27,10 +27,10 @@ type SessionListOutput struct {
 
 // 2. Determine the dependencies
 type SessionList struct {
-	sessionRepo domain.SessionRepo
+	sessionRepo domain.SessionRepository
 }
 
-func NewSessionList(sessionRepo domain.SessionRepo) *SessionList {
+func NewSessionList(sessionRepo domain.SessionRepository) *SessionList {
 	return &SessionList{
 		sessionRepo: sessionRepo,
 	}
@@ -39,14 +39,14 @@ func NewSessionList(sessionRepo domain.SessionRepo) *SessionList {
 // 3. Business flow of retrieving a list of user sessions
 func (uc *SessionList) Execute(ctx context.Context, input SessionListInput) (*SessionListOutput, error) {
 	// Retrieving all active sessions by user id
-	domainSessions, err := uc.sessionRepo.FindAllByUserID(ctx, input.UserID)
+	domainSessions, err := uc.sessionRepo.FindAll(ctx, input.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve active sessions: %w", err)
 	}
 
 	items := make([]SessionItem, 0, len(domainSessions))
 	for _, s := range domainSessions {
-		isCurrent := s.RefreshTokenHash == input.CurrentRefreshTokenHash
+		isCurrent := s.RefreshTokenHash == input.CurrentRefreshToken
 
 		items = append(items, SessionItem{
 			ID:        s.ID,

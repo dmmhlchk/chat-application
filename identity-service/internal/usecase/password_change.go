@@ -9,18 +9,18 @@ import (
 
 // 1. Determine the input
 type ChangePasswordInput struct {
-	UserID          int
+	UserID          string
 	CurrentPassword string
 	NewPassword     string
 }
 
 // 2. Determine the dependencies
 type ChangePassword struct {
-	userRepo  domain.UserRepo
+	userRepo  domain.UserRepository
 	pwdHasher domain.PasswordHasher
 }
 
-func NewChangePassword(userRepo domain.UserRepo, pwdHasher domain.PasswordHasher) *ChangePassword {
+func NewChangePassword(userRepo domain.UserRepository, pwdHasher domain.PasswordHasher) *ChangePassword {
 	return &ChangePassword{
 		userRepo:  userRepo,
 		pwdHasher: pwdHasher,
@@ -30,7 +30,7 @@ func NewChangePassword(userRepo domain.UserRepo, pwdHasher domain.PasswordHasher
 // 3. Business flow of changing password
 func (uc *ChangePassword) Execute(ctx context.Context, input ChangePasswordInput) error {
 	// 1. Validate input basic constraints
-	if input.UserID == 0 || input.CurrentPassword == "" || input.NewPassword == "" {
+	if input.UserID == "" || input.CurrentPassword == "" || input.NewPassword == "" {
 		return errors.New("required fields were not filled")
 	}
 

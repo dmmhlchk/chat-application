@@ -9,20 +9,20 @@ import (
 
 // 1. Determine the input
 type UserDeleteInput struct {
-	UserID   int
+	UserID   string
 	Password string
 }
 
 // 2. Determine the dependencies
 type UserDelete struct {
-	userRepo    domain.UserRepo
-	sessionRepo domain.SessionRepo
+	userRepo    domain.UserRepository
+	sessionRepo domain.SessionRepository
 	pwdHasher   domain.PasswordHasher
 }
 
 func NewUserDelete(
-	userRepo domain.UserRepo,
-	sessionRepo domain.SessionRepo,
+	userRepo domain.UserRepository,
+	sessionRepo domain.SessionRepository,
 	pwdHasher domain.PasswordHasher,
 ) *UserDelete {
 	return &UserDelete{

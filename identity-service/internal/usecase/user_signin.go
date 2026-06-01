@@ -18,22 +18,22 @@ type SignInInput struct {
 }
 
 type SignInOutput struct {
-	UserId           int
-	AccessToken      string
-	RefreshTokenHash string
+	UserID       string
+	AccessToken  string
+	RefreshToken string
 }
 
 // 2. Determine the dependencies
 type SignIn struct {
-	userRepo    domain.UserRepo
-	sessionRepo domain.SessionRepo
+	userRepo    domain.UserRepository
+	sessionRepo domain.SessionRepository
 	pwdHasher   domain.PasswordHasher
 	tokenGen    domain.TokenGenerator
 }
 
 func NewSignIn(
-	userRepo domain.UserRepo,
-	sessionRepo domain.SessionRepo,
+	userRepo domain.UserRepository,
+	sessionRepo domain.SessionRepository,
 	pwdHasher domain.PasswordHasher,
 	tokenGen domain.TokenGenerator,
 ) *SignIn {
@@ -71,16 +71,26 @@ func (uc *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 	}
 
 	// 4. Generate auth tokens
-	expiration := 30 * 24 * time.Hour
-	accessToken, refreshTokenHash, err := uc.tokenGen.GeneratePair(user.ID, expiration)
+	sessionID := uc.userRepo.NewUUID()
+	var expiration time.Duration
+
+	expiration = 15 * time.Minute
+	accessToken, err := uc.tokenGen.GenerateToken(user.ID, sessionID, expiration)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate authentication tokens: %w", err)
+		return nil, fmt.Errorf("failed to generate access tokens: %w", err)
+	}
+
+	expiration = 30 * 24 * time.Hour
+	refreshToken, err := uc.tokenGen.GenerateToken(user.ID, sessionID, expiration)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate refresh tokens: %w", err)
 	}
 
 	// 5. Register a new session
-	newSession := domain.NewSession(
+	session := domain.NewSession(
+		sessionID,
 		user.ID,
-		refreshTokenHash,
+		refreshToken,
 		input.NotificationToken,
 		input.Device,
 		input.IPAddress,
@@ -88,15 +98,15 @@ func (uc *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 	)
 
 	// 6. Save session to database
-	err = uc.sessionRepo.Create(ctx, newSession)
+	err = uc.sessionRepo.Create(ctx, session)
 	if err != nil {
 		return nil, fmt.Errorf("failed to establish secure session: %w", err)
 	}
 
 	// 7. Return success
 	return &SignInOutput{
-		UserId:           user.ID,
-		AccessToken:      accessToken,
-		RefreshTokenHash: refreshTokenHash,
+		UserID:       user.ID,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}, nil
 }

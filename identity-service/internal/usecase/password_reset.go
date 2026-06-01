@@ -19,23 +19,23 @@ type PasswordResetRequestInput struct {
 
 // 2. Determine the dependencies
 type PasswordResetRequest struct {
-	userRepo     domain.UserRepo
-	otpGenerator domain.OTPGenerator
-	codeHandler  domain.CodeHandler
-	smsProvider  domain.SMSProvider
+	userRepo    domain.UserRepository
+	smsProvider domain.SMSProvider
+	otpGen      domain.OTPGenerator
+	otpRepo     domain.OTPRepository
 }
 
 func NewPasswordResetRequest(
-	userRepo domain.UserRepo,
-	otpGenerator domain.OTPGenerator,
-	codeHandler domain.CodeHandler,
+	userRepo domain.UserRepository,
 	smsProvider domain.SMSProvider,
+	otpGen domain.OTPGenerator,
+	otpRepo domain.OTPRepository,
 ) *PasswordResetRequest {
 	return &PasswordResetRequest{
-		userRepo:     userRepo,
-		otpGenerator: otpGenerator,
-		codeHandler:  codeHandler,
-		smsProvider:  smsProvider,
+		userRepo:    userRepo,
+		smsProvider: smsProvider,
+		otpGen:      otpGen,
+		otpRepo:     otpRepo,
 	}
 }
 
@@ -51,13 +51,13 @@ func (uc *PasswordResetRequest) Execute(ctx context.Context, input PasswordReset
 	}
 
 	// 2. Generate a secure 6-digit numeric string
-	code, err := uc.otpGenerator.Generate(6)
+	code, err := uc.otpGen.Generate(6)
 	if err != nil {
 		return fmt.Errorf("failed to generate verification token: %w", err)
 	}
 
 	// 3. Persist the OTP with an expiration (e.g., 5 mins) inside Redis via the repository
-	err = uc.codeHandler.Save(ctx, input.Phone, code)
+	err = uc.otpRepo.Save(ctx, input.Phone, code)
 	if err != nil {
 		return fmt.Errorf("failed to process request: %w", err)
 	}
@@ -83,19 +83,22 @@ type ResetConfirmInput struct {
 
 // 2. Determine the dependencies
 type PasswordResetConfirm struct {
-	userRepo    domain.UserRepo
-	codeHandler domain.CodeHandler
+	userRepo    domain.UserRepository
+	sessionRepo domain.SessionRepository
+	otpRepo     domain.OTPRepository
 	pwdHasher   domain.PasswordHasher
 }
 
 func NewPasswordResetConfirm(
-	userRepo domain.UserRepo,
-	codeHandler domain.CodeHandler,
+	userRepo domain.UserRepository,
+	sessionRepo domain.SessionRepository,
+	otpRepo domain.OTPRepository,
 	pwdHasher domain.PasswordHasher,
 ) *PasswordResetConfirm {
 	return &PasswordResetConfirm{
 		userRepo:    userRepo,
-		codeHandler: codeHandler,
+		sessionRepo: sessionRepo,
+		otpRepo:     otpRepo,
 		pwdHasher:   pwdHasher,
 	}
 }
@@ -108,32 +111,38 @@ func (uc *PasswordResetConfirm) Execute(ctx context.Context, input ResetConfirmI
 	}
 
 	// 2. Verify the code matches what we stored
-	isValid, err := uc.codeHandler.Verify(ctx, input.Phone, input.Code)
+	isValid, err := uc.otpRepo.Verify(ctx, input.Phone, input.Code)
 	if err != nil || !isValid {
 		return errors.New("invalid or expired verification code")
 	}
 
-	// 3. Code is correct! Find the target user profile
+	// 3. Find the target user profile
 	user, err := uc.userRepo.FindByPhone(ctx, input.Phone)
 	if err != nil || user == nil {
 		return errors.New("user account no longer exists")
 	}
 
-	// 4. Hash the fresh password string
+	// 4. Revoke all active sessions
+	err = uc.sessionRepo.TerminateAll(ctx, user.ID)
+	if err != nil {
+		return fmt.Errorf("failed termainta all sessions: %w", err)
+	}
+
+	// 5. Hash the fresh password string
 	hashedPassword, err := uc.pwdHasher.Hash(input.NewPassword)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	// 5. Mutate the User Entity pointer and save it
+	// 6. Mutate the User Entity pointer and save it
 	user.PasswordHash = hashedPassword
 	err = uc.userRepo.Update(ctx, user)
 	if err != nil {
 		return fmt.Errorf("failed to update password: %w", err)
 	}
 
-	// 6. Clean up the used verification code so it can't be replayed
-	_ = uc.codeHandler.Delete(ctx, input.Phone)
+	// 7. Clean up the used verification code so it can't be replayed
+	_ = uc.otpRepo.Delete(ctx, input.Phone)
 
 	return nil
 }
