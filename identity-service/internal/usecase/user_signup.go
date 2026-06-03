@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"identity-service/internal/domain"
+	"time"
 )
 
 // This use case was separated by 2 parts: request (send sms code) and confirm (verify sms code + register a new user)
@@ -57,7 +58,7 @@ func (uc *SignUpRequest) Execute(ctx context.Context, input SignUpRequestInput) 
 	}
 
 	// 3. Persist the OTP with an expiration
-	err = uc.otpRepo.Save(ctx, input.Phone, code)
+	err = uc.otpRepo.Save(ctx, input.Phone, code, 1*time.Minute)
 	if err != nil {
 		return fmt.Errorf("failed to process request: %w", err)
 	}
