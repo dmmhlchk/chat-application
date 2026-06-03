@@ -1,6 +1,17 @@
 
 services:
+
   # --- IDENTITY SERVICE, DATABASE & MIGRATIONS ---
+  identity_cache:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
   identity-db:
     image: postgres:16-alpine
     environment:
@@ -67,5 +78,10 @@ services:
 
   
 volumes:
+  redis_data:
   identity_pg_data:
   comms_pg_data:
+
+networks:
+  app_network:
+    driver: bridge
