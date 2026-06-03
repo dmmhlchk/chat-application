@@ -18,7 +18,7 @@ type RedisOTPRepository struct {
 	ttl    time.Duration
 }
 
-func NewRedisOTPRepository(client *redis.Client, ttl time.Duration) *RedisOTPRepository {
+func NewRedisOTPGenerator(client *redis.Client, ttl time.Duration) *RedisOTPRepository {
 	return &RedisOTPRepository{
 		client: client,
 		ttl:    ttl,
@@ -32,7 +32,7 @@ func (r *RedisOTPRepository) buildKey(phone string) string {
 func (r *RedisOTPRepository) Save(ctx context.Context, phone string, code string) error {
 	key := r.buildKey(phone)
 
-	err := r.client.Set(ctx, key, code, r.ttl).Err()
+	err := r.client.Set(ctx, key, code, r.ttl)
 	if err != nil {
 		return fmt.Errorf("redis failed to save otp: %w", err)
 	}
