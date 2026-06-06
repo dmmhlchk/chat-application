@@ -3,6 +3,7 @@ package v1
 import (
 	"encoding/json"
 	"identity-service/internal/usecase"
+	"mime"
 	"net/http"
 )
 
@@ -18,48 +19,49 @@ type signUpConfirmPayload struct {
 	Code     string `json:"code"`
 }
 
-// 2. Determine presentation outputs
-type errorResponse struct {
-	Error string `json:"error"`
-}
-
-type messageResponse struct {
-	Message string `json:"message"`
-}
-
-// 3. Injects dependencies
-type SignUpHandler struct {
+// 2. Injects dependencies
+type SignUp struct {
 	reqSignUp  *usecase.SignUpRequest
 	confSignUp *usecase.SignUpConfirm
 }
 
-func NewSignUpHandler(reqSignUp *usecase.SignUpRequest, confSignUp *usecase.SignUpConfirm) *SignUpHandler {
-	return &SignUpHandler{
+func NewSignUpHandler(reqSignUp *usecase.SignUpRequest, confSignUp *usecase.SignUpConfirm) *SignUp {
+	return &SignUp{
 		reqSignUp:  reqSignUp,
 		confSignUp: confSignUp,
 	}
 }
 
-// 4. helpers
-func (h *SignUpHandler) respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
+// 3. helpers
+func (h *SignUp) respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	_ = json.NewEncoder(w).Encode(payload)
 }
 
-func (h *SignUpHandler) respondWithError(w http.ResponseWriter, statusCode int, message string) {
+func (h *SignUp) respondWithError(w http.ResponseWriter, statusCode int, message string) {
 	h.respondWithJSON(w, statusCode, errorResponse{Error: message})
 }
 
-// 5. Handle sign up request and confirm use cases
-func (h *SignUpHandler) SignUpRequest(w http.ResponseWriter, r *http.Request) {
+// 4. Handle sign up request and confirm use cases
+func (h *SignUp) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		h.respondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
+	mediatype, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil || mediatype != "application/json" {
+		h.respondWithError(
+			w,
+			http.StatusUnsupportedMediaType,
+			"unsupported media type: request body must be application/json",
+		)
+		return
+	}
+
 	var req signUpRequestPayload
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.respondWithError(w, http.StatusBadRequest, "invalid json payload")
 		return
 	}
@@ -68,7 +70,7 @@ func (h *SignUpHandler) SignUpRequest(w http.ResponseWriter, r *http.Request) {
 		Phone: req.Phone,
 	}
 
-	err := h.reqSignUp.Execute(r.Context(), input)
+	err = h.reqSignUp.Execute(r.Context(), input)
 	if err != nil {
 		h.respondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -79,14 +81,24 @@ func (h *SignUpHandler) SignUpRequest(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *SignUpHandler) SignUpConfirm(w http.ResponseWriter, r *http.Request) {
+func (h *SignUp) HandleConfirm(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		h.respondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
+	mediatype, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil || mediatype != "application/json" {
+		h.respondWithError(
+			w,
+			http.StatusUnsupportedMediaType,
+			"unsupported media type: request body must be application/json",
+		)
+		return
+	}
+
 	var req signUpConfirmPayload
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.respondWithError(w, http.StatusBadRequest, "invalid json payload")
 		return
 	}
@@ -98,7 +110,7 @@ func (h *SignUpHandler) SignUpConfirm(w http.ResponseWriter, r *http.Request) {
 		Password: req.Password,
 	}
 
-	err := h.confSignUp.Execute(r.Context(), input)
+	err = h.confSignUp.Execute(r.Context(), input)
 	if err != nil {
 		h.respondWithError(w, http.StatusBadRequest, err.Error())
 		return
