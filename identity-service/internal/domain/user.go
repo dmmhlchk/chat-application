@@ -2,13 +2,7 @@ package domain
 
 import (
 	"context"
-	"errors"
 	"time"
-)
-
-var (
-	ErrInvalidUsername = errors.New("username cannot be empty")
-	ErrInvalidPhone    = errors.New("invalid phone number format")
 )
 
 type User struct {

@@ -2,7 +2,7 @@
 services:
 
   # --- IDENTITY SERVICE, DATABASE & MIGRATIONS ---
-  identity_cache:
+  identity-cache:
     image: redis:7.2-alpine
     restart: unless-stopped
     ports:
@@ -41,7 +41,26 @@ services:
       identity-db:
         condition: service_healthy
 
-  # identity-service:
+  identity-service:
+    build:
+      context: ./identity-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    depends_on:
+      identity-cache:
+        condition: service_healthy
+      identity-db:
+        condition: service_healthy
+      identity-migrate:
+        condition: service_completed_successfully
+    environment:
+      - POSTGRES_URL=postgres://identity_user:identity_password@identity-db:5432/identity_db?sslmode=disable
+      - REDIS_URL=redis://identity_cache:6379
+      - JWT_SECRET=68a5f0e0-6bf0-4b25-8c38-5b9c706bf21d
+    networks:
+      - app_network
 
 
   # --- COMMUNICATION SERVICE, DATABASE & MIGRATIONS ---

@@ -189,13 +189,13 @@ func (r *SessionRepository) Update(ctx context.Context, s *domain.Session) error
 		query,
 		s.ID,
 		s.RefreshTokenHash,
-		s.NotificationToken, // Passes empty string default if not set
-		s.Device.Hash,       // Assuming a grouped Device domain struct
+		s.NotificationToken,
+		s.Device.Hash,
 		s.Device.Name,
 		s.Device.Version,
-		s.Device.Platform,  // Drivers automatically convert string to custom ENUM type
-		s.CreatedIPAddress, // Works flawlessly with a simple string containing the IP
+		s.Device.Platform,
 		s.ActiveIPAddress,
+		s.ActiveAt,
 		s.ExpiresAt,
 		s.IsRevoked,
 	)

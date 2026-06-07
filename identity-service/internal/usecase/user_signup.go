@@ -92,12 +92,12 @@ type SignUpConfirm struct {
 func NewSignUpConfirm(
 	userRepo domain.UserRepository,
 	otpRepo domain.OTPRepository,
-	hasher domain.PasswordHasher,
+	pwdHasher domain.PasswordHasher,
 ) *SignUpConfirm {
 	return &SignUpConfirm{
 		userRepo:  userRepo,
 		otpRepo:   otpRepo,
-		pwdHasher: hasher,
+		pwdHasher: pwdHasher,
 	}
 }
 
