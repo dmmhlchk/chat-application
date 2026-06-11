@@ -4,22 +4,28 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"identity-service/internal/domain"
+
+	"identity-service/internal/application/port"
+
+	"github.com/google/uuid"
 )
 
 // 1. Determine the input
 type TerminateSessionInput struct {
-	UserID       string
+	UserID       uuid.UUID
 	RefreshToken string
 }
 
 // 2. Determine the dependencies
 type TerminateSession struct {
-	sessionRepo domain.SessionRepository
-	tokenGen    domain.TokenGenerator
+	sessionRepo port.SessionRepository
+	tokenGen    port.TokenGenerator
 }
 
-func NewTerminateSession(sessionRepo domain.SessionRepository, tokenGen domain.TokenGenerator) *TerminateSession {
+func NewTerminateSession(
+	sessionRepo port.SessionRepository,
+	tokenGen port.TokenGenerator,
+) *TerminateSession {
 	return &TerminateSession{
 		sessionRepo: sessionRepo,
 		tokenGen:    tokenGen,
@@ -29,7 +35,7 @@ func NewTerminateSession(sessionRepo domain.SessionRepository, tokenGen domain.T
 // 3. Business flow of session termination
 func (uc *TerminateSession) Execute(ctx context.Context, input TerminateSessionInput) error {
 	// 1. Validate input basic constraints
-	if input.UserID == "" || input.RefreshToken == "" {
+	if input.UserID == uuid.Nil || input.RefreshToken == "" {
 		return errors.New("required fields were not filled")
 	}
 
@@ -43,7 +49,7 @@ func (uc *TerminateSession) Execute(ctx context.Context, input TerminateSessionI
 	}
 
 	// 3. Find a token in DB and check if we can terminate the session or not
-	session, err := uc.sessionRepo.FindByID(ctx, sessionID)
+	session, err := uc.sessionRepo.FindBySessionID(ctx, sessionID)
 	if err != nil {
 		return fmt.Errorf("failed to lookup session: %w", err)
 	}
@@ -55,7 +61,7 @@ func (uc *TerminateSession) Execute(ctx context.Context, input TerminateSessionI
 	}
 
 	// 4. Revoke the session
-	err = uc.sessionRepo.TerminateByID(ctx, sessionID)
+	err = uc.sessionRepo.TerminateBySessionID(ctx, sessionID)
 	if err != nil {
 		return fmt.Errorf("failed to revoke session: %w", err)
 	}

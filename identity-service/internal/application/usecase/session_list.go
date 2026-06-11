@@ -3,18 +3,22 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"identity-service/internal/domain"
 	"time"
+
+	"identity-service/internal/application/port"
+	"identity-service/internal/domain"
+
+	"github.com/google/uuid"
 )
 
 // 1. Determine the input and the output
 type SessionListInput struct {
-	UserID              string
+	UserID              uuid.UUID
 	CurrentRefreshToken string
 }
 
 type SessionItem struct {
-	ID        string        `json:"id"`
+	ID        uuid.UUID     `json:"id"`
 	Device    domain.Device `json:"device"`
 	IPAddress string        `json:"ip_address"`
 	IsCurrent bool          `json:"is_current"`
@@ -27,10 +31,10 @@ type SessionListOutput struct {
 
 // 2. Determine the dependencies
 type SessionList struct {
-	sessionRepo domain.SessionRepository
+	sessionRepo port.SessionRepository
 }
 
-func NewSessionList(sessionRepo domain.SessionRepository) *SessionList {
+func NewSessionList(sessionRepo port.SessionRepository) *SessionList {
 	return &SessionList{
 		sessionRepo: sessionRepo,
 	}
@@ -39,7 +43,7 @@ func NewSessionList(sessionRepo domain.SessionRepository) *SessionList {
 // 3. Business flow of retrieving a list of user sessions
 func (uc *SessionList) Execute(ctx context.Context, input SessionListInput) (*SessionListOutput, error) {
 	// Retrieving all active sessions by user id
-	domainSessions, err := uc.sessionRepo.FindAll(ctx, input.UserID)
+	domainSessions, err := uc.sessionRepo.FindAllByUserID(ctx, input.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve active sessions: %w", err)
 	}

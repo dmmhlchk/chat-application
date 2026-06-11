@@ -4,26 +4,28 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"identity-service/internal/domain"
+	"identity-service/internal/application/port"
+
+	"github.com/google/uuid"
 )
 
 // 1. Determine the input
 type UserDeleteInput struct {
-	UserID   string
+	UserID   uuid.UUID
 	Password string
 }
 
 // 2. Determine the dependencies
 type UserDelete struct {
-	userRepo    domain.UserRepository
-	sessionRepo domain.SessionRepository
-	pwdHasher   domain.PasswordHasher
+	userRepo    port.UserRepository
+	sessionRepo port.SessionRepository
+	pwdHasher   port.PasswordHasher
 }
 
 func NewUserDelete(
-	userRepo domain.UserRepository,
-	sessionRepo domain.SessionRepository,
-	pwdHasher domain.PasswordHasher,
+	userRepo port.UserRepository,
+	sessionRepo port.SessionRepository,
+	pwdHasher port.PasswordHasher,
 ) *UserDelete {
 	return &UserDelete{
 		userRepo:    userRepo,
@@ -35,7 +37,7 @@ func NewUserDelete(
 // 3. Business flow of deleting user data
 func (uc *UserDelete) Execute(ctx context.Context, input UserDeleteInput) error {
 	// 1. Fetch user data
-	user, err := uc.userRepo.FindByID(ctx, input.UserID)
+	user, err := uc.userRepo.FindByUserID(ctx, input.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to look up account: %w", err)
 	}

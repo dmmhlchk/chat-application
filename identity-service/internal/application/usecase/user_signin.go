@@ -4,8 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"identity-service/internal/domain"
 	"time"
+
+	"identity-service/internal/application/port"
+	"identity-service/internal/domain"
+
+	"github.com/google/uuid"
 )
 
 // 1. Determine the input and the output
@@ -18,26 +22,29 @@ type SignInInput struct {
 }
 
 type SignInOutput struct {
-	UserID       string
+	UserID       uuid.UUID
 	AccessToken  string
 	RefreshToken string
 }
 
 // 2. Determine the dependencies
 type SignIn struct {
-	userRepo    domain.UserRepository
-	sessionRepo domain.SessionRepository
-	pwdHasher   domain.PasswordHasher
-	tokenGen    domain.TokenGenerator
+	uuidGen     port.UUIDGeneratod
+	userRepo    port.UserRepository
+	sessionRepo port.SessionRepository
+	pwdHasher   port.PasswordHasher
+	tokenGen    port.TokenGenerator
 }
 
 func NewSignIn(
-	userRepo domain.UserRepository,
-	sessionRepo domain.SessionRepository,
-	pwdHasher domain.PasswordHasher,
-	tokenGen domain.TokenGenerator,
+	uuidGen port.UUIDGeneratod,
+	userRepo port.UserRepository,
+	sessionRepo port.SessionRepository,
+	pwdHasher port.PasswordHasher,
+	tokenGen port.TokenGenerator,
 ) *SignIn {
 	return &SignIn{
+		uuidGen:     uuidGen,
 		userRepo:    userRepo,
 		sessionRepo: sessionRepo,
 		pwdHasher:   pwdHasher,
@@ -71,7 +78,7 @@ func (uc *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 	}
 
 	// 4. Generate auth tokens
-	sessionID := uc.userRepo.NewUUID()
+	sessionID := uc.uuidGen.NewUUID()
 	var expiration time.Duration
 
 	expiration = 15 * time.Minute
@@ -87,7 +94,7 @@ func (uc *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 	}
 
 	// 5. Register a new session
-	session := domain.NewSession(
+	session, err := domain.NewSession(
 		sessionID,
 		user.ID,
 		refreshToken,
@@ -96,6 +103,9 @@ func (uc *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 		input.IPAddress,
 		expiration,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create session: %w", err)
+	}
 
 	// 6. Save session to database
 	err = uc.sessionRepo.Create(ctx, session)

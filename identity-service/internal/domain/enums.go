@@ -9,3 +9,11 @@ const (
 	PlatformAndroid Platform = "android"
 	PlatformIOS     Platform = "ios"
 )
+
+func (p Platform) IsValid() bool {
+	switch p {
+	case PlatformWeb, PlatformWindows, PlatformMacOS, PlatformAndroid, PlatformIOS:
+		return true
+	}
+	return false
+}

@@ -4,23 +4,26 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"identity-service/internal/domain"
+
+	"identity-service/internal/application/port"
+
+	"github.com/google/uuid"
 )
 
 // 1. Determine the input
 type ChangePasswordInput struct {
-	UserID          string
+	UserID          uuid.UUID
 	CurrentPassword string
 	NewPassword     string
 }
 
 // 2. Determine the dependencies
 type ChangePassword struct {
-	userRepo  domain.UserRepository
-	pwdHasher domain.PasswordHasher
+	userRepo  port.UserRepository
+	pwdHasher port.PasswordHasher
 }
 
-func NewChangePassword(userRepo domain.UserRepository, pwdHasher domain.PasswordHasher) *ChangePassword {
+func NewChangePassword(userRepo port.UserRepository, pwdHasher port.PasswordHasher) *ChangePassword {
 	return &ChangePassword{
 		userRepo:  userRepo,
 		pwdHasher: pwdHasher,
@@ -30,12 +33,12 @@ func NewChangePassword(userRepo domain.UserRepository, pwdHasher domain.Password
 // 3. Business flow of changing password
 func (uc *ChangePassword) Execute(ctx context.Context, input ChangePasswordInput) error {
 	// 1. Validate input basic constraints
-	if input.UserID == "" || input.CurrentPassword == "" || input.NewPassword == "" {
+	if input.UserID == uuid.Nil || input.CurrentPassword == "" || input.NewPassword == "" {
 		return errors.New("required fields were not filled")
 	}
 
 	// 2. Find a user by phone
-	user, err := uc.userRepo.FindByID(ctx, input.UserID)
+	user, err := uc.userRepo.FindByUserID(ctx, input.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to find a user: %w", err)
 	}

@@ -1,20 +1,14 @@
 package domain
 
 import (
-	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
-type Device struct {
-	Hash     string
-	Name     string
-	Version  string
-	Platform Platform
-}
-
 type Session struct {
-	ID                string
-	UserID            string
+	ID                uuid.UUID
+	UserID            uuid.UUID
 	RefreshTokenHash  string
 	NotificationToken string
 	Device            Device
@@ -27,14 +21,24 @@ type Session struct {
 }
 
 func NewSession(
-	sessionID string,
-	userID string,
+	sessionID uuid.UUID,
+	userID uuid.UUID,
 	refreshTokenHash string,
 	notificationToken string,
 	device Device,
 	ipAddress string,
 	ttl time.Duration,
-) *Session {
+) (*Session, error) {
+	if userID == uuid.Nil {
+		return nil, ErrInvalidUserID
+	}
+	if refreshTokenHash == "" {
+		return nil, ErrInvalidRefreshToken
+	}
+	if ttl <= 0 {
+		return nil, ErrInvalidTTL
+	}
+
 	now := time.Now().UTC()
 
 	return &Session{
@@ -49,18 +53,30 @@ func NewSession(
 		ActiveIPAddress:   ipAddress,
 		ExpiresAt:         now.Add(ttl),
 		IsRevoked:         false,
-	}
+	}, nil
 }
 
-type SessionRepository interface {
-	FindByID(ctx context.Context, sessionID string) (*Session, error) // return active session
-	FindAll(ctx context.Context, userID string) ([]Session, error)    // return active sessions
+func (s *Session) IsExpired() bool {
+	return time.Now().UTC().After(s.ExpiresAt)
+}
 
-	NewUUID() string
+func (s *Session) IsValid() bool {
+	return !s.IsRevoked && !s.IsExpired()
+}
 
-	TerminateByID(ctx context.Context, sessionID string) error
-	TerminateAll(ctx context.Context, userID string) error
+func (s *Session) Revoke() error {
+	if s.IsRevoked {
+		return ErrSessionAlreadyRevoked
+	}
+	s.IsRevoked = true
+	return nil
+}
 
-	Create(ctx context.Context, session *Session) error
-	Update(ctx context.Context, session *Session) error
+func (s *Session) RefreshActivity(ipAddress string) error {
+	if !s.IsValid() {
+		return ErrSessionInvalid
+	}
+	s.ActiveAt = time.Now().UTC()
+	s.ActiveIPAddress = ipAddress
+	return nil
 }
