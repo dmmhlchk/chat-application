@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"identity-service/internal/handler/http/middleware"
 	v1 "identity-service/internal/handler/http/v1"
 	"identity-service/internal/infrastructure/cache"
 	"identity-service/internal/infrastructure/crypto"
@@ -26,9 +27,9 @@ func main() {
 	// 				GETTING CONFIGS
 	// ----------------------------------------------------------------------
 
-	postgresURL := os.Getenv("POSTGRES_URL")
-	redisURL := os.Getenv("REDIS_URL")
-	jwtSecret := os.Getenv("JWT_SECRET")
+	postgresURL := getEnvOrPanic("POSTGRES_URL")
+	redisURL := getEnvOrPanic("REDIS_URL")
+	jwtSecret := getEnvOrPanic("JWT_SECRET")
 
 	// ----------------------------------------------------------------------
 	//  			INFRASTRUCTURE: DB & CACHE INITIALIZATION
@@ -85,8 +86,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Public Routes (No authentication required)
-	mux.HandleFunc("POST /api/v1/auth/signup/request", userSignUp.HandleConfirm)
-	mux.HandleFunc("POST /api/v1/auth/signup/confirm", userSignUp.HandleRequest)
+	mux.HandleFunc("POST /api/v1/auth/signup/request", userSignUp.HandleRequest)
+	mux.HandleFunc("POST /api/v1/auth/signup/confirm", userSignUp.HandleConfirm)
 	mux.HandleFunc("POST /api/v1/auth/signin", userSignIn.Handle)
 	mux.HandleFunc("POST /api/v1/auth/password/reset/request", passwordReset.HandleRequest)
 	mux.HandleFunc("POST /api/v1/auth/password/reset/confirm", passwordReset.HandleConfirm)
@@ -97,10 +98,12 @@ func main() {
 	mux.HandleFunc("POST /api/v1/auth/password/change", passwordChange.Handle)
 	mux.HandleFunc("POST /api/v1/users/me", userDeletion.Handle)
 
+	loggedRouter := middleware.RequestLogger(mux)
+
 	// Define Server Parameters
 	srv := &http.Server{
 		Addr:         ":8080",
-		Handler:      mux,
+		Handler:      loggedRouter,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
@@ -133,6 +136,15 @@ func main() {
 	}
 
 	log.Println("Identity Service safely offline.")
+}
+
+func getEnvOrPanic(key string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		log.Fatalf("Boot error: Environment variable %q required.\n", key)
+		os.Exit(1)
+	}
+	return val
 }
 
 func initPostgres(connString string) *sql.DB {

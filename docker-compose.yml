@@ -11,6 +11,12 @@ services:
       - redis_data:/data
     networks:
       - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
 
   identity-db:
     image: postgres:16-alpine
@@ -22,6 +28,8 @@ services:
       - "5051:5432"
     volumes:
       - identity_pg_data:/var/lib/postgresql/data
+    networks:
+      - app_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U identity_user -d identity_db"]
       interval: 3s
@@ -37,6 +45,8 @@ services:
       -path=/migrations
       -database="postgres://identity_user:identity_password@identity-db:5432/identity_db?sslmode=disable"
       up
+    networks:
+      - app_network
     depends_on:
       identity-db:
         condition: service_healthy
@@ -48,6 +58,10 @@ services:
     ports:
       - "8080:8080"
     restart: unless-stopped
+    environment:
+      - POSTGRES_URL=postgres://identity_user:identity_password@identity-db:5432/identity_db?sslmode=disable
+      - REDIS_URL=redis://identity-cache:6379
+      - JWT_SECRET=68a5f0e0-6bf0-4b25-8c38-5b9c706bf21d
     depends_on:
       identity-cache:
         condition: service_healthy
@@ -55,12 +69,18 @@ services:
         condition: service_healthy
       identity-migrate:
         condition: service_completed_successfully
-    environment:
-      - POSTGRES_URL=postgres://identity_user:identity_password@identity-db:5432/identity_db?sslmode=disable
-      - REDIS_URL=redis://identity_cache:6379
-      - JWT_SECRET=68a5f0e0-6bf0-4b25-8c38-5b9c706bf21d
     networks:
       - app_network
+
+    develop:
+      watch:
+        - action: sync
+          path: ./identity-service
+          target: /app # Change this to your working directory inside the container
+          ignore:
+            - node_modules/ # Ignore dependencies if applicable
+        - action: rebuild
+          path: ./identity-service/package.json # Rebuild if you add new dependencies
 
 
   # --- COMMUNICATION SERVICE, DATABASE & MIGRATIONS ---

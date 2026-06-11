@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"identity-service/internal/domain"
 
@@ -68,9 +69,14 @@ func (r *UserRepository) FindByPhone(ctx context.Context, phone string) (*domain
 		where phone = $1`
 
 	var user domain.User
-	err := r.db.QueryRowContext(ctx, query, phone).Scan(&user)
+	err := r.db.QueryRowContext(ctx, query, phone).Scan(&user.ID, &user.Username, &user.Phone, &user.PasswordHash)
 	if err != nil {
-		return nil, fmt.Errorf("postgres find by username failed: %w", err)
+		// If no user was found, this is NOT a database failure. Return nil for both.
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("postgres find by phone failed: %w", err)
 	}
 
 	return &user, nil
@@ -82,12 +88,10 @@ func (r *UserRepository) NewUUID() string {
 
 func (r *UserRepository) Create(ctx context.Context, u *domain.User) error {
 	query := `
-		insert into users (username, password, phone) 
-		values ($1, $2, $3) 
-		returning id`
+		insert into users (id, username, password_hash, phone) 
+		values ($1, $2, $3, $4)`
 
-	// Scanning back the auto-generated primary key sequence directly onto the domain pointer
-	err := r.db.QueryRowContext(ctx, query, u.Username, u.PasswordHash, u.Phone).Scan(&u.ID)
+	_, err := r.db.ExecContext(ctx, query, u.ID, u.Username, u.PasswordHash, u.Phone)
 	if err != nil {
 		return fmt.Errorf("postgres user insertion failed: %w", err)
 	}
