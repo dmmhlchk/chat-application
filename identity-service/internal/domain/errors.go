@@ -9,6 +9,7 @@ var (
 	ErrInvalidPhone      = errors.New("invalid phone number")
 
 	// session errors
+	ErrSessionNotFound       = errors.New("session not found")
 	ErrSessionAlreadyRevoked = errors.New("session already revoked")
 	ErrSessionInvalid        = errors.New("session is invalid")
 	ErrInvalidUserID         = errors.New("invalid user id")
