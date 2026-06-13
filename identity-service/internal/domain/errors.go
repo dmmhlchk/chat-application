@@ -22,4 +22,8 @@ var (
 	ErrInvalidDeviceName    = errors.New("invalid device name")
 	ErrInvalidDeviceVersion = errors.New("invalid device version")
 	ErrInvalidPlatform      = errors.New("invalid platform")
+
+	// otp errors
+	ErrOTPInvalid = errors.New("invalid otp code")
+	ErrOTPExpired = errors.New("otp expired")
 )
