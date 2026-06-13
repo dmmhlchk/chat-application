@@ -101,10 +101,10 @@ func (r *UserRepository) ExistsByPhoneOrUsername(ctx context.Context, phone stri
 
 func (r *UserRepository) Create(ctx context.Context, u *domain.User) error {
 	query := `
-		insert into users (id, username, password_hash, phone) 
+		insert into users (id, username, phone, password_hash) 
 		values ($1, $2, $3, $4)`
 
-	_, err := r.db.ExecContext(ctx, query, u.ID, u.Username, u.PasswordHash, u.Phone)
+	_, err := r.db.ExecContext(ctx, query, u.ID, u.Username, u.Phone, u.PasswordHash)
 	if err != nil {
 		return fmt.Errorf("postgres: user insertion failed - %w", err)
 	}
@@ -122,9 +122,14 @@ func (r *UserRepository) Update(ctx context.Context, u *domain.User) error {
 			updated_at = current_timestamp
 		where id = $1`
 
-	_, err := r.db.ExecContext(ctx, query, u.ID, u.Username, u.Phone, u.PasswordHash)
+	result, err := r.db.ExecContext(ctx, query, u.ID, u.Username, u.Phone, u.PasswordHash)
 	if err != nil {
 		return fmt.Errorf("postgres: user modification failed - %w", err)
+	}
+
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return domain.ErrUserNotFound
 	}
 
 	return nil
@@ -135,9 +140,14 @@ func (r *UserRepository) Delete(ctx context.Context, userID uuid.UUID) error {
 		delete from users 
 		where id = $1`
 
-	_, err := r.db.ExecContext(ctx, query, userID)
+	result, err := r.db.ExecContext(ctx, query, userID)
 	if err != nil {
 		return fmt.Errorf("postgres: user deletion failed - %w", err)
+	}
+
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return domain.ErrUserNotFound
 	}
 
 	return nil

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"identity-service/internal/domain"
+	"identity-service/internal/infrastructure/persistence/postgres"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
@@ -19,7 +20,7 @@ import (
 // --	Helpers
 // ------------------------------------------------------------------------------------------------
 
-func newUserRepoMock(t *testing.T) (*UserRepository, sqlmock.Sqlmock) {
+func newUserRepoMock(t *testing.T) (*postgres.UserRepository, sqlmock.Sqlmock) {
 	t.Helper()
 
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherRegexp))
@@ -30,7 +31,7 @@ func newUserRepoMock(t *testing.T) (*UserRepository, sqlmock.Sqlmock) {
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
-	return NewUserRepository(db).(*UserRepository), mock
+	return postgres.NewUserRepository(db).(*postgres.UserRepository), mock
 }
 
 func userColumns() []string {

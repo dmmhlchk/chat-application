@@ -166,7 +166,7 @@ func (r *SessionRepository) Update(ctx context.Context, s *domain.Session) error
 			is_revoked = $11
 		where id = $1`
 
-	_, err := r.db.ExecContext(
+	result, err := r.db.ExecContext(
 		ctx,
 		query,
 		s.ID,
@@ -186,6 +186,11 @@ func (r *SessionRepository) Update(ctx context.Context, s *domain.Session) error
 		return fmt.Errorf("postgres: session modification failed: %w", err)
 	}
 
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return domain.ErrSessionNotFound
+	}
+
 	return nil
 }
 
@@ -203,7 +208,7 @@ func (r *SessionRepository) TerminateAllByUserID(ctx context.Context, userID uui
 
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
-		return domain.ErrSessionNotFound
+		return domain.ErrAlreadyCleanSessions
 	}
 
 	return nil

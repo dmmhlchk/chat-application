@@ -3,11 +3,13 @@ package postgres_test
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"testing"
 	"time"
 
 	"identity-service/internal/domain"
+	"identity-service/internal/infrastructure/persistence/postgres"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
@@ -19,7 +21,7 @@ import (
 // --	Helpers
 // ------------------------------------------------------------------------------------------------
 
-func newSessionRepoMock(t *testing.T) (*SessionRepository, sqlmock.Sqlmock) {
+func newSessionRepoMock(t *testing.T) (*postgres.SessionRepository, sqlmock.Sqlmock) {
 	t.Helper()
 
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherRegexp))
@@ -30,7 +32,7 @@ func newSessionRepoMock(t *testing.T) (*SessionRepository, sqlmock.Sqlmock) {
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
-	return NewSessionRepository(db).(*SessionRepository), mock
+	return postgres.NewSessionRepository(db).(*postgres.SessionRepository), mock
 }
 
 func sessionColumns() []string {
@@ -344,8 +346,7 @@ func TestSessionRepository_TerminateAllByUserID(t *testing.T) {
 
 		err := repo.TerminateAllByUserID(context.Background(), uuid.New())
 
-		// not an error — terminating an already-clean user is a no-op
-		assert.NoError(t, err)
+		assert.ErrorIs(t, err, domain.ErrAlreadyCleanSessions)
 	})
 
 	t.Run("db error", func(t *testing.T) {
