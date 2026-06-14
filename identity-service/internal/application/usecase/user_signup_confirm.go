@@ -19,23 +19,23 @@ type SignUpConfirmInput struct {
 
 // 2. Determine the dependencies
 type SignUpConfirm struct {
-	uuidGen   port.UUIDGeneratod
-	userRepo  port.UserRepository
-	otpRepo   port.OTPCacheRepository
-	pwdHasher port.PasswordHasher
+	uuidProvider   port.UUIDProvider
+	userRepo       port.UserRepository
+	otpRepo        port.OTPCacheRepository
+	passwordHasher port.PasswordHasher
 }
 
 func NewSignUpConfirm(
-	uuidGen port.UUIDGeneratod,
+	uuidProvider port.UUIDProvider,
 	userRepo port.UserRepository,
 	otpRepo port.OTPCacheRepository,
-	pwdHasher port.PasswordHasher,
+	passwordHasher port.PasswordHasher,
 ) *SignUpConfirm {
 	return &SignUpConfirm{
-		uuidGen:   uuidGen,
-		userRepo:  userRepo,
-		otpRepo:   otpRepo,
-		pwdHasher: pwdHasher,
+		uuidProvider:   uuidProvider,
+		userRepo:       userRepo,
+		otpRepo:        otpRepo,
+		passwordHasher: passwordHasher,
 	}
 }
 
@@ -62,13 +62,13 @@ func (uc *SignUpConfirm) Execute(ctx context.Context, input SignUpConfirmInput) 
 	}
 
 	// 4. Secure the password using our domain's abstract PasswordHasher interface
-	hashedPassword, err := uc.pwdHasher.Hash(input.Password)
+	hashedPassword, err := uc.passwordHasher.Hash(input.Password)
 	if err != nil {
 		return fmt.Errorf("failed to process password: %w", err)
 	}
 
 	// 5. Register a new user
-	userID := uc.uuidGen.NewUUID()
+	userID := uc.uuidProvider.Generate()
 	user, err := domain.NewUser(
 		userID,
 		input.Username,

@@ -3,8 +3,9 @@ package security
 import (
 	"errors"
 	"fmt"
-	"identity-service/internal/application/port"
 	"time"
+
+	"identity-service/internal/application/port"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"identity-service/internal/application/port"
+	"identity-service/internal/domain"
 )
 
 // 1. Determine the input
@@ -16,23 +17,23 @@ type SignUpRequestInput struct {
 
 // 2. Determine the dependencies
 type SignUpRequest struct {
-	userRepo  port.UserRepository
-	otpSender port.OTPSender
-	otpGen    port.OTPGenerator
-	otpRepo   port.OTPCacheRepository
+	userRepo       port.UserRepository
+	eventPublisher port.EventPublisher
+	otpGen         port.OTPGenerator
+	otpRepo        port.OTPCacheRepository
 }
 
 func NewSignUpRequest(
 	userRepo port.UserRepository,
-	otpSender port.OTPSender,
+	eventPublisher port.EventPublisher,
 	otpGen port.OTPGenerator,
 	otpRepo port.OTPCacheRepository,
 ) *SignUpRequest {
 	return &SignUpRequest{
-		userRepo:  userRepo,
-		otpSender: otpSender,
-		otpGen:    otpGen,
-		otpRepo:   otpRepo,
+		userRepo:       userRepo,
+		eventPublisher: eventPublisher,
+		otpGen:         otpGen,
+		otpRepo:        otpRepo,
 	}
 }
 
@@ -60,7 +61,12 @@ func (uc *SignUpRequest) Execute(ctx context.Context, input SignUpRequestInput) 
 	}
 
 	// 4. Send the SMS
-	err = uc.otpSender.Send(ctx, input.Phone, code)
+	evt := domain.OTPCreated{
+		Phone: input.Phone,
+		Code:  code,
+	}
+
+	err = uc.eventPublisher.PublishOTPCreated(ctx, evt)
 	if err != nil {
 		return fmt.Errorf("failed to dispatch text message: %w", err)
 	}

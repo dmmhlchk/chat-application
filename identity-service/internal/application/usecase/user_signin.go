@@ -29,26 +29,26 @@ type SignInOutput struct {
 
 // 2. Determine the dependencies
 type SignIn struct {
-	uuidGen     port.UUIDGeneratod
-	userRepo    port.UserRepository
-	sessionRepo port.SessionRepository
-	pwdHasher   port.PasswordHasher
-	tokenGen    port.TokenGenerator
+	uuidProvider   port.UUIDProvider
+	userRepo       port.UserRepository
+	sessionRepo    port.SessionRepository
+	passwordHasher port.PasswordHasher
+	tokenGen       port.TokenGenerator
 }
 
 func NewSignIn(
-	uuidGen port.UUIDGeneratod,
+	uuidProvider port.UUIDProvider,
 	userRepo port.UserRepository,
 	sessionRepo port.SessionRepository,
-	pwdHasher port.PasswordHasher,
+	passwordHasher port.PasswordHasher,
 	tokenGen port.TokenGenerator,
 ) *SignIn {
 	return &SignIn{
-		uuidGen:     uuidGen,
-		userRepo:    userRepo,
-		sessionRepo: sessionRepo,
-		pwdHasher:   pwdHasher,
-		tokenGen:    tokenGen,
+		uuidProvider:   uuidProvider,
+		userRepo:       userRepo,
+		sessionRepo:    sessionRepo,
+		passwordHasher: passwordHasher,
+		tokenGen:       tokenGen,
 	}
 }
 
@@ -69,7 +69,7 @@ func (uc *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 	}
 
 	// 3. Compare passwords
-	match, err := uc.pwdHasher.Compare(user.PasswordHash, input.Password)
+	match, err := uc.passwordHasher.Compare(user.PasswordHash, input.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare passwords: %w", err)
 	}
@@ -78,7 +78,7 @@ func (uc *SignIn) Execute(ctx context.Context, input SignInInput) (*SignInOutput
 	}
 
 	// 4. Generate auth tokens
-	sessionID := uc.uuidGen.NewUUID()
+	sessionID := uc.uuidProvider.Generate()
 	var expiration time.Duration
 
 	expiration = 15 * time.Minute

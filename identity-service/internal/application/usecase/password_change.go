@@ -19,14 +19,14 @@ type ChangePasswordInput struct {
 
 // 2. Determine the dependencies
 type ChangePassword struct {
-	userRepo  port.UserRepository
-	pwdHasher port.PasswordHasher
+	userRepo       port.UserRepository
+	passwordHasher port.PasswordHasher
 }
 
-func NewChangePassword(userRepo port.UserRepository, pwdHasher port.PasswordHasher) *ChangePassword {
+func NewChangePassword(userRepo port.UserRepository, passwordHasher port.PasswordHasher) *ChangePassword {
 	return &ChangePassword{
-		userRepo:  userRepo,
-		pwdHasher: pwdHasher,
+		userRepo:       userRepo,
+		passwordHasher: passwordHasher,
 	}
 }
 
@@ -47,7 +47,7 @@ func (uc *ChangePassword) Execute(ctx context.Context, input ChangePasswordInput
 	}
 
 	// 3. Compare passwords + Prevent the user from reusing their exact same password
-	match, err := uc.pwdHasher.Compare(user.PasswordHash, input.CurrentPassword)
+	match, err := uc.passwordHasher.Compare(user.PasswordHash, input.CurrentPassword)
 	if err != nil {
 		return fmt.Errorf("failed to compare passwords: %w", err)
 	}
@@ -59,7 +59,7 @@ func (uc *ChangePassword) Execute(ctx context.Context, input ChangePasswordInput
 	}
 
 	// 4. Generate hash for the new password
-	hashedPassword, err := uc.pwdHasher.Hash(input.NewPassword)
+	hashedPassword, err := uc.passwordHasher.Hash(input.NewPassword)
 	if err != nil {
 		return fmt.Errorf("failed to process password: %w", err)
 	}

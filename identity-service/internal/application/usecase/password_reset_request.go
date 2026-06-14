@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"identity-service/internal/application/port"
+	"identity-service/internal/domain"
 )
 
 // Request: send otp code via sms
@@ -18,23 +19,23 @@ type PasswordResetRequestInput struct {
 
 // 2. Determine the dependencies
 type PasswordResetRequest struct {
-	userRepo  port.UserRepository
-	otpSender port.OTPSender
-	otpGen    port.OTPGenerator
-	otpRepo   port.OTPCacheRepository
+	userRepo       port.UserRepository
+	eventPublisher port.EventPublisher
+	otpGen         port.OTPGenerator
+	otpRepo        port.OTPCacheRepository
 }
 
 func NewPasswordResetRequest(
 	userRepo port.UserRepository,
-	otpSender port.OTPSender,
+	otpSender port.EventPublisher,
 	otpGen port.OTPGenerator,
 	otpRepo port.OTPCacheRepository,
 ) *PasswordResetRequest {
 	return &PasswordResetRequest{
-		userRepo:  userRepo,
-		otpSender: otpSender,
-		otpGen:    otpGen,
-		otpRepo:   otpRepo,
+		userRepo:       userRepo,
+		eventPublisher: otpSender,
+		otpGen:         otpGen,
+		otpRepo:        otpRepo,
 	}
 }
 
@@ -61,8 +62,13 @@ func (uc *PasswordResetRequest) Execute(ctx context.Context, input PasswordReset
 		return fmt.Errorf("failed to process request: %w", err)
 	}
 
-	// 4. Send the SMS via your infrastructure adapter
-	err = uc.otpSender.Send(ctx, input.Phone, code)
+	// 4. Send the SMS
+	evt := domain.OTPCreated{
+		Phone: input.Phone,
+		Code:  code,
+	}
+
+	err = uc.eventPublisher.PublishOTPCreated(ctx, evt)
 	if err != nil {
 		return fmt.Errorf("failed to dispatch text message: %w", err)
 	}

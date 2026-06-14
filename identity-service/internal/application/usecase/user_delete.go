@@ -17,20 +17,20 @@ type UserDeleteInput struct {
 
 // 2. Determine the dependencies
 type UserDelete struct {
-	userRepo    port.UserRepository
-	sessionRepo port.SessionRepository
-	pwdHasher   port.PasswordHasher
+	userRepo       port.UserRepository
+	sessionRepo    port.SessionRepository
+	passwordHasher port.PasswordHasher
 }
 
 func NewUserDelete(
 	userRepo port.UserRepository,
 	sessionRepo port.SessionRepository,
-	pwdHasher port.PasswordHasher,
+	passwordHasher port.PasswordHasher,
 ) *UserDelete {
 	return &UserDelete{
-		userRepo:    userRepo,
-		sessionRepo: sessionRepo,
-		pwdHasher:   pwdHasher,
+		userRepo:       userRepo,
+		sessionRepo:    sessionRepo,
+		passwordHasher: passwordHasher,
 	}
 }
 
@@ -46,7 +46,7 @@ func (uc *UserDelete) Execute(ctx context.Context, input UserDeleteInput) error 
 	}
 
 	// 2. Compare passwords
-	match, err := uc.pwdHasher.Compare(user.PasswordHash, input.Password)
+	match, err := uc.passwordHasher.Compare(user.PasswordHash, input.Password)
 	if err != nil {
 		return fmt.Errorf("failed to compare passwords: %w", err)
 	}

@@ -17,23 +17,23 @@ type ResetConfirmInput struct {
 
 // 2. Determine the dependencies
 type PasswordResetConfirm struct {
-	userRepo    port.UserRepository
-	sessionRepo port.SessionRepository
-	otpRepo     port.OTPCacheRepository
-	pwdHasher   port.PasswordHasher
+	userRepo       port.UserRepository
+	sessionRepo    port.SessionRepository
+	otpRepo        port.OTPCacheRepository
+	passwordHasher port.PasswordHasher
 }
 
 func NewPasswordResetConfirm(
 	userRepo port.UserRepository,
 	sessionRepo port.SessionRepository,
 	otpRepo port.OTPCacheRepository,
-	pwdHasher port.PasswordHasher,
+	passwordHasher port.PasswordHasher,
 ) *PasswordResetConfirm {
 	return &PasswordResetConfirm{
-		userRepo:    userRepo,
-		sessionRepo: sessionRepo,
-		otpRepo:     otpRepo,
-		pwdHasher:   pwdHasher,
+		userRepo:       userRepo,
+		sessionRepo:    sessionRepo,
+		otpRepo:        otpRepo,
+		passwordHasher: passwordHasher,
 	}
 }
 
@@ -63,7 +63,7 @@ func (uc *PasswordResetConfirm) Execute(ctx context.Context, input ResetConfirmI
 	}
 
 	// 5. Hash the fresh password string
-	hashedPassword, err := uc.pwdHasher.Hash(input.NewPassword)
+	hashedPassword, err := uc.passwordHasher.Hash(input.NewPassword)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
