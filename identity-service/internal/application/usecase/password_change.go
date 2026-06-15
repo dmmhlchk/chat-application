@@ -20,12 +20,18 @@ type ChangePasswordInput struct {
 // 2. Determine the dependencies
 type ChangePassword struct {
 	userRepo       port.UserRepository
+	sessionWriter  port.SessionWriter
 	passwordHasher port.PasswordHasher
 }
 
-func NewChangePassword(userRepo port.UserRepository, passwordHasher port.PasswordHasher) *ChangePassword {
+func NewChangePassword(
+	userRepo port.UserRepository,
+	sessionWriter port.SessionWriter,
+	passwordHasher port.PasswordHasher,
+) *ChangePassword {
 	return &ChangePassword{
 		userRepo:       userRepo,
+		sessionWriter:  sessionWriter,
 		passwordHasher: passwordHasher,
 	}
 }
@@ -58,13 +64,19 @@ func (uc *ChangePassword) Execute(ctx context.Context, input ChangePasswordInput
 		return errors.New("new password cannot be the same as your current password")
 	}
 
-	// 4. Generate hash for the new password
+	// 4. Revoke all active sessions
+	err = uc.sessionWriter.TerminateAllByUserID(ctx, user.ID)
+	if err != nil {
+		return fmt.Errorf("failed terminate all sessions: %w", err)
+	}
+
+	// 5. Generate hash for the new password
 	hashedPassword, err := uc.passwordHasher.Hash(input.NewPassword)
 	if err != nil {
 		return fmt.Errorf("failed to process password: %w", err)
 	}
 
-	// 5. Change user password
+	// 6. Change user password
 	user.PasswordHash = hashedPassword
 	err = uc.userRepo.Update(ctx, user)
 	if err != nil {

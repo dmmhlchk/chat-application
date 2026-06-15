@@ -17,20 +17,20 @@ type SignUpRequestInput struct {
 
 // 2. Determine the dependencies
 type SignUpRequest struct {
-	userRepo       port.UserRepository
+	userReader     port.UserReader
 	eventPublisher port.EventPublisher
 	otpGen         port.OTPGenerator
 	otpRepo        port.OTPCacheRepository
 }
 
 func NewSignUpRequest(
-	userRepo port.UserRepository,
+	userReader port.UserReader,
 	eventPublisher port.EventPublisher,
 	otpGen port.OTPGenerator,
 	otpRepo port.OTPCacheRepository,
 ) *SignUpRequest {
 	return &SignUpRequest{
-		userRepo:       userRepo,
+		userReader:     userReader,
 		eventPublisher: eventPublisher,
 		otpGen:         otpGen,
 		otpRepo:        otpRepo,
@@ -40,7 +40,7 @@ func NewSignUpRequest(
 // 3. Business flow of user registration (part 1: send an sms code to the user)
 func (uc *SignUpRequest) Execute(ctx context.Context, input SignUpRequestInput) error {
 	// 1. Verify that the user actually exists by phone number
-	user, err := uc.userRepo.FindByPhone(ctx, input.Phone)
+	user, err := uc.userReader.FindByPhone(ctx, input.Phone)
 	if err != nil {
 		return fmt.Errorf("failed to look up account: %w", err)
 	}

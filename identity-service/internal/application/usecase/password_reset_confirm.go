@@ -18,20 +18,20 @@ type ResetConfirmInput struct {
 // 2. Determine the dependencies
 type PasswordResetConfirm struct {
 	userRepo       port.UserRepository
-	sessionRepo    port.SessionRepository
+	sessionWriter  port.SessionWriter
 	otpRepo        port.OTPCacheRepository
 	passwordHasher port.PasswordHasher
 }
 
 func NewPasswordResetConfirm(
 	userRepo port.UserRepository,
-	sessionRepo port.SessionRepository,
+	sessionWriter port.SessionWriter,
 	otpRepo port.OTPCacheRepository,
 	passwordHasher port.PasswordHasher,
 ) *PasswordResetConfirm {
 	return &PasswordResetConfirm{
 		userRepo:       userRepo,
-		sessionRepo:    sessionRepo,
+		sessionWriter:  sessionWriter,
 		otpRepo:        otpRepo,
 		passwordHasher: passwordHasher,
 	}
@@ -57,9 +57,9 @@ func (uc *PasswordResetConfirm) Execute(ctx context.Context, input ResetConfirmI
 	}
 
 	// 4. Revoke all active sessions
-	err = uc.sessionRepo.TerminateAllByUserID(ctx, user.ID)
+	err = uc.sessionWriter.TerminateAllByUserID(ctx, user.ID)
 	if err != nil {
-		return fmt.Errorf("failed termainta all sessions: %w", err)
+		return fmt.Errorf("failed terminate all sessions: %w", err)
 	}
 
 	// 5. Hash the fresh password string
@@ -68,7 +68,7 @@ func (uc *PasswordResetConfirm) Execute(ctx context.Context, input ResetConfirmI
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	// 6. Mutate the User Entity pointer and save it
+	// 6. Change user password
 	user.PasswordHash = hashedPassword
 	err = uc.userRepo.Update(ctx, user)
 	if err != nil {

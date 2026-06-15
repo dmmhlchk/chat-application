@@ -18,18 +18,15 @@ type UserDeleteInput struct {
 // 2. Determine the dependencies
 type UserDelete struct {
 	userRepo       port.UserRepository
-	sessionRepo    port.SessionRepository
 	passwordHasher port.PasswordHasher
 }
 
 func NewUserDelete(
 	userRepo port.UserRepository,
-	sessionRepo port.SessionRepository,
 	passwordHasher port.PasswordHasher,
 ) *UserDelete {
 	return &UserDelete{
 		userRepo:       userRepo,
-		sessionRepo:    sessionRepo,
 		passwordHasher: passwordHasher,
 	}
 }

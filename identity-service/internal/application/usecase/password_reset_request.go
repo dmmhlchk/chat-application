@@ -10,8 +10,6 @@ import (
 	"identity-service/internal/domain"
 )
 
-// Request: send otp code via sms
-
 // 1. Determine the input
 type PasswordResetRequestInput struct {
 	Phone string
@@ -19,20 +17,20 @@ type PasswordResetRequestInput struct {
 
 // 2. Determine the dependencies
 type PasswordResetRequest struct {
-	userRepo       port.UserRepository
+	userReader     port.UserReader
 	eventPublisher port.EventPublisher
 	otpGen         port.OTPGenerator
 	otpRepo        port.OTPCacheRepository
 }
 
 func NewPasswordResetRequest(
-	userRepo port.UserRepository,
+	userReader port.UserReader,
 	otpSender port.EventPublisher,
 	otpGen port.OTPGenerator,
 	otpRepo port.OTPCacheRepository,
 ) *PasswordResetRequest {
 	return &PasswordResetRequest{
-		userRepo:       userRepo,
+		userReader:     userReader,
 		eventPublisher: otpSender,
 		otpGen:         otpGen,
 		otpRepo:        otpRepo,
@@ -42,7 +40,7 @@ func NewPasswordResetRequest(
 // 3. Busines flow of the reseting password (part 1: send an sms code to the user)
 func (uc *PasswordResetRequest) Execute(ctx context.Context, input PasswordResetRequestInput) error {
 	// 1. Verify that the user actually exists by phone number
-	user, err := uc.userRepo.FindByPhone(ctx, input.Phone)
+	user, err := uc.userReader.FindByPhone(ctx, input.Phone)
 	if err != nil {
 		return fmt.Errorf("failed to look up account: %w", err)
 	}
