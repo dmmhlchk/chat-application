@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,6 +22,13 @@ func NewUser(
 	phone string,
 	passwordHash string,
 ) (*User, error) {
+	if strings.TrimSpace(username) == "" {
+		return nil, ErrInvalidUsername
+	}
+	if strings.TrimSpace(phone) == "" {
+		return nil, ErrInvalidPhone
+	}
+
 	return &User{
 		ID:           userID,
 		Username:     username,

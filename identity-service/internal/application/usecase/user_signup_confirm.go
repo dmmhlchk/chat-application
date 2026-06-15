@@ -58,7 +58,7 @@ func (uc *SignUpConfirm) Execute(ctx context.Context, input SignUpConfirmInput) 
 		return fmt.Errorf("failed to verify account uniqueness: %w", err)
 	}
 	if exists {
-		return errors.New("phone number or username is already registered")
+		return errors.New("phone number or username is already taken")
 	}
 
 	// 4. Secure the password using our domain's abstract PasswordHasher interface
