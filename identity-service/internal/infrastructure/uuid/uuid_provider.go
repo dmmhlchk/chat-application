@@ -1,6 +1,12 @@
 package uuid
 
-import "github.com/google/uuid"
+import (
+	"identity-service/internal/application/port"
+
+	"github.com/google/uuid"
+)
+
+var _ port.UUIDProvider = (*UUIDProvider)(nil)
 
 type UUIDProvider struct{}
 
