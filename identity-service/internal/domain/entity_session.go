@@ -1,14 +1,10 @@
 package domain
 
-import (
-	"time"
-
-	"github.com/google/uuid"
-)
+import "time"
 
 type Session struct {
-	ID                uuid.UUID
-	UserID            uuid.UUID
+	ID                string
+	UserID            string
 	RefreshTokenHash  string
 	NotificationToken string
 	Device            Device
@@ -21,15 +17,15 @@ type Session struct {
 }
 
 func NewSession(
-	sessionID uuid.UUID,
-	userID uuid.UUID,
+	sessionID string,
+	userID string,
 	refreshTokenHash string,
 	notificationToken string,
 	device Device,
 	ipAddress string,
 	ttl time.Duration,
 ) (*Session, error) {
-	if userID == uuid.Nil {
+	if userID == "" {
 		return nil, ErrInvalidUserID
 	}
 	if refreshTokenHash == "" {

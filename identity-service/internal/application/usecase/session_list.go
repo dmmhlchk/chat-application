@@ -7,18 +7,16 @@ import (
 
 	"identity-service/internal/application/port"
 	"identity-service/internal/domain"
-
-	"github.com/google/uuid"
 )
 
 // 1. Determine the input and the output
 type SessionListInput struct {
-	UserID              uuid.UUID
+	UserID              string
 	CurrentRefreshToken string
 }
 
 type SessionItem struct {
-	ID        uuid.UUID     `json:"id"`
+	ID        string        `json:"id"`
 	Device    domain.Device `json:"device"`
 	IPAddress string        `json:"ip_address"`
 	IsCurrent bool          `json:"is_current"`

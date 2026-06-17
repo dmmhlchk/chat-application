@@ -3,12 +3,10 @@ package domain
 import (
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type User struct {
-	ID           uuid.UUID
+	ID           string
 	Username     string
 	Phone        string
 	PasswordHash string
@@ -17,7 +15,7 @@ type User struct {
 }
 
 func NewUser(
-	userID uuid.UUID,
+	userID string,
 	username string,
 	phone string,
 	passwordHash string,

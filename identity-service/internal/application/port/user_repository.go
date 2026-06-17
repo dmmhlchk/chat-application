@@ -4,12 +4,10 @@ import (
 	"context"
 
 	"identity-service/internal/domain"
-
-	"github.com/google/uuid"
 )
 
 type UserReader interface {
-	FindByUserID(ctx context.Context, userID uuid.UUID) (*domain.User, error)
+	FindByUserID(ctx context.Context, userID string) (*domain.User, error)
 	FindByPhone(ctx context.Context, phone string) (*domain.User, error)
 	FindByUsername(ctx context.Context, username string) (*domain.User, error)
 	ExistsByPhoneOrUsername(ctx context.Context, phone string, username string) (bool, error)
@@ -18,7 +16,7 @@ type UserReader interface {
 type UserWriter interface {
 	Create(ctx context.Context, user *domain.User) error
 	Update(ctx context.Context, user *domain.User) error
-	Delete(ctx context.Context, userID uuid.UUID) error
+	Delete(ctx context.Context, userID string) error
 }
 
 type UserRepository interface {

@@ -8,15 +8,14 @@ import (
 	"identity-service/internal/application/port"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 )
 
 var _ port.TokenGenerator = (*JWTGenerator)(nil)
 
 // struct for payload
 type UserClaims struct {
-	UserID    uuid.UUID `json:"sub"`
-	SessionID uuid.UUID `json:"sid"`
+	UserID    string `json:"sub"`
+	SessionID string `json:"sid"`
 	jwt.RegisteredClaims
 }
 
@@ -28,7 +27,7 @@ func NewJWTGenerator(secret string) *JWTGenerator {
 	return &JWTGenerator{secretKey: []byte(secret)}
 }
 
-func (g *JWTGenerator) GenerateToken(userID uuid.UUID, sessionID uuid.UUID, ttl time.Duration) (string, error) {
+func (g *JWTGenerator) GenerateToken(userID string, sessionID string, ttl time.Duration) (string, error) {
 	now := time.Now()
 
 	claims := UserClaims{
@@ -52,7 +51,7 @@ func (g *JWTGenerator) GenerateToken(userID uuid.UUID, sessionID uuid.UUID, ttl 
 	return signedToken, nil
 }
 
-func (g *JWTGenerator) ValidateToken(tokenString string) (uuid.UUID, uuid.UUID, error) {
+func (g *JWTGenerator) ValidateToken(tokenString string) (string, string, error) {
 	// Parse the token string with our target claims destination structure
 	token, err := jwt.ParseWithClaims(tokenString, &UserClaims{}, func(t *jwt.Token) (interface{}, error) {
 		// Crucial Security Check: Validate that the signing method matches what we expect
@@ -64,13 +63,13 @@ func (g *JWTGenerator) ValidateToken(tokenString string) (uuid.UUID, uuid.UUID, 
 
 	if err != nil {
 		// Automatically handles expired tokens, invalid formats, and corrupted signatures
-		return uuid.Nil, uuid.Nil, fmt.Errorf("token validation failed: %w", err)
+		return "", "", fmt.Errorf("token validation failed: %w", err)
 	}
 
 	// Extract claims and verify the token status flag is fully valid
 	claims, ok := token.Claims.(*UserClaims)
 	if !ok || !token.Valid {
-		return uuid.Nil, uuid.Nil, errors.New("token contains invalid claims infrastructure")
+		return "", "", errors.New("token contains invalid claims infrastructure")
 	}
 
 	return claims.UserID, claims.SessionID, nil

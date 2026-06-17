@@ -6,13 +6,11 @@ import (
 	"fmt"
 
 	"identity-service/internal/application/port"
-
-	"github.com/google/uuid"
 )
 
 // 1. Determine the input
 type TerminateSessionInput struct {
-	UserID       uuid.UUID
+	UserID       string
 	RefreshToken string
 }
 
@@ -35,7 +33,7 @@ func NewTerminateSession(
 // 3. Business flow of session termination
 func (uc *TerminateSession) Execute(ctx context.Context, input TerminateSessionInput) error {
 	// 1. Validate input basic constraints
-	if input.UserID == uuid.Nil || input.RefreshToken == "" {
+	if input.UserID == "" || input.RefreshToken == "" {
 		return errors.New("required fields were not filled")
 	}
 

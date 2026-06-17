@@ -8,8 +8,6 @@ import (
 
 	"identity-service/internal/application/port"
 	"identity-service/internal/domain"
-
-	"github.com/google/uuid"
 )
 
 // 1. Determine the input and the output
@@ -22,7 +20,7 @@ type SignInInput struct {
 }
 
 type SignInOutput struct {
-	UserID       uuid.UUID
+	UserID       string
 	AccessToken  string
 	RefreshToken string
 }

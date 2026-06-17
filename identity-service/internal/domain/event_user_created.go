@@ -1,9 +1,7 @@
 package domain
 
-import "github.com/google/uuid"
-
 type UserCreated struct {
-	ID       uuid.UUID
+	ID       string
 	Username string
 	Phone    string
 }

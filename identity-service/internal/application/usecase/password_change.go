@@ -6,13 +6,11 @@ import (
 	"fmt"
 
 	"identity-service/internal/application/port"
-
-	"github.com/google/uuid"
 )
 
 // 1. Determine the input
 type ChangePasswordInput struct {
-	UserID          uuid.UUID
+	UserID          string
 	CurrentPassword string
 	NewPassword     string
 }
@@ -39,7 +37,7 @@ func NewChangePassword(
 // 3. Business flow of changing password
 func (uc *ChangePassword) Execute(ctx context.Context, input ChangePasswordInput) error {
 	// 1. Validate input basic constraints
-	if input.UserID == uuid.Nil || input.CurrentPassword == "" || input.NewPassword == "" {
+	if input.UserID == "" || input.CurrentPassword == "" || input.NewPassword == "" {
 		return errors.New("required fields were not filled")
 	}
 

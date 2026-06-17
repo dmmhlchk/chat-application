@@ -8,8 +8,6 @@ import (
 
 	"identity-service/internal/application/port"
 	"identity-service/internal/domain"
-
-	"github.com/google/uuid"
 )
 
 var _ port.SessionRepository = (*SessionRepository)(nil)
@@ -26,7 +24,7 @@ func NewSessionRepository(db *sql.DB) port.SessionRepository {
 // --		Read methods
 // -------------------------------------------------------------------------------------------------
 
-func (r *SessionRepository) FindAllByUserID(ctx context.Context, userID uuid.UUID) ([]domain.Session, error) {
+func (r *SessionRepository) FindAllByUserID(ctx context.Context, userID string) ([]domain.Session, error) {
 	query := `
 		select 
 			id, user_id, 
@@ -73,7 +71,7 @@ func (r *SessionRepository) FindAllByUserID(ctx context.Context, userID uuid.UUI
 	return sessions, nil
 }
 
-func (r *SessionRepository) FindBySessionID(ctx context.Context, sessionID uuid.UUID) (*domain.Session, error) {
+func (r *SessionRepository) FindBySessionID(ctx context.Context, sessionID string) (*domain.Session, error) {
 	query := `
 		select 
 			id, user_id, 
@@ -194,7 +192,7 @@ func (r *SessionRepository) Update(ctx context.Context, s *domain.Session) error
 	return nil
 }
 
-func (r *SessionRepository) TerminateAllByUserID(ctx context.Context, userID uuid.UUID) error {
+func (r *SessionRepository) TerminateAllByUserID(ctx context.Context, userID string) error {
 	query := `
 		update sessions
 		set is_revoked = true
@@ -214,7 +212,7 @@ func (r *SessionRepository) TerminateAllByUserID(ctx context.Context, userID uui
 	return nil
 }
 
-func (r *SessionRepository) TerminateBySessionID(ctx context.Context, sessionID uuid.UUID) error {
+func (r *SessionRepository) TerminateBySessionID(ctx context.Context, sessionID string) error {
 	query := `
 		update sessions
 		set is_revoked = true

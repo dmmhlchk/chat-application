@@ -8,8 +8,6 @@ import (
 
 	"identity-service/internal/application/port"
 	"identity-service/internal/domain"
-
-	"github.com/google/uuid"
 )
 
 var _ port.UserRepository = (*UserRepository)(nil)
@@ -26,7 +24,7 @@ func NewUserRepository(db *sql.DB) port.UserRepository {
 // --		Read methods
 // -------------------------------------------------------------------------------------------------
 
-func (r *UserRepository) FindByUserID(ctx context.Context, userID uuid.UUID) (*domain.User, error) {
+func (r *UserRepository) FindByUserID(ctx context.Context, userID string) (*domain.User, error) {
 	query := `
 		select id, username, phone, password_hash 
 		from users 
@@ -135,7 +133,7 @@ func (r *UserRepository) Update(ctx context.Context, u *domain.User) error {
 	return nil
 }
 
-func (r *UserRepository) Delete(ctx context.Context, userID uuid.UUID) error {
+func (r *UserRepository) Delete(ctx context.Context, userID string) error {
 	query := `
 		delete from users 
 		where id = $1`

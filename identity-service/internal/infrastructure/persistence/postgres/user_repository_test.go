@@ -44,7 +44,7 @@ func mockUserRow(u *domain.User) []driver.Value {
 
 func newTestUser() *domain.User {
 	return &domain.User{
-		ID:           uuid.New(),
+		ID:           uuid.New().String(),
 		Username:     "john_doe",
 		Phone:        "+996700000001",
 		PasswordHash: "$2a$10$hashedpassword",
@@ -83,7 +83,7 @@ func TestUserRepository_FindByUserID(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnError(sql.ErrNoRows)
 
-		got, err := repo.FindByUserID(context.Background(), uuid.New())
+		got, err := repo.FindByUserID(context.Background(), uuid.New().String())
 
 		assert.Nil(t, got)
 		assert.ErrorIs(t, err, domain.ErrUserNotFound)
@@ -97,7 +97,7 @@ func TestUserRepository_FindByUserID(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnError(dbErr)
 
-		got, err := repo.FindByUserID(context.Background(), uuid.New())
+		got, err := repo.FindByUserID(context.Background(), uuid.New().String())
 
 		assert.Nil(t, got)
 		assert.ErrorIs(t, err, dbErr)
@@ -333,7 +333,7 @@ func TestUserRepository_Update(t *testing.T) {
 func TestUserRepository_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo, mock := newUserRepoMock(t)
-		id := uuid.New()
+		id := uuid.New().String()
 
 		mock.ExpectExec(`delete from users`).
 			WithArgs(id).
@@ -351,7 +351,7 @@ func TestUserRepository_Delete(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewResult(0, 0))
 
-		err := repo.Delete(context.Background(), uuid.New())
+		err := repo.Delete(context.Background(), uuid.New().String())
 
 		assert.ErrorIs(t, err, domain.ErrUserNotFound)
 	})
@@ -364,7 +364,7 @@ func TestUserRepository_Delete(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnError(dbErr)
 
-		err := repo.Delete(context.Background(), uuid.New())
+		err := repo.Delete(context.Background(), uuid.New().String())
 
 		assert.ErrorIs(t, err, dbErr)
 	})

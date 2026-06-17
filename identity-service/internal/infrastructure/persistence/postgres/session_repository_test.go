@@ -57,10 +57,10 @@ func mockSessionRow(s *domain.Session) []driver.Value {
 	}
 }
 
-func newTestSession(userID uuid.UUID) *domain.Session {
+func newTestSession(userID string) *domain.Session {
 	now := time.Now()
 	return &domain.Session{
-		ID:                uuid.New(),
+		ID:                uuid.New().String(),
 		UserID:            userID,
 		RefreshTokenHash:  "hashed_refresh_token",
 		NotificationToken: "fcm_token_abc123",
@@ -86,7 +86,7 @@ func newTestSession(userID uuid.UUID) *domain.Session {
 func TestSessionRepository_FindAllByUserID(t *testing.T) {
 	t.Run("returns multiple sessions", func(t *testing.T) {
 		repo, mock := newSessionRepoMock(t)
-		userID := uuid.New()
+		userID := uuid.New().String()
 		s1 := newTestSession(userID)
 		s2 := newTestSession(userID)
 
@@ -113,7 +113,7 @@ func TestSessionRepository_FindAllByUserID(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnRows(sqlmock.NewRows(sessionColumns())) // empty result
 
-		sessions, err := repo.FindAllByUserID(context.Background(), uuid.New())
+		sessions, err := repo.FindAllByUserID(context.Background(), uuid.New().String())
 
 		require.NoError(t, err)
 		// nil slice is acceptable here — callers should handle both nil and empty
@@ -128,7 +128,7 @@ func TestSessionRepository_FindAllByUserID(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnError(dbErr)
 
-		sessions, err := repo.FindAllByUserID(context.Background(), uuid.New())
+		sessions, err := repo.FindAllByUserID(context.Background(), uuid.New().String())
 
 		assert.Nil(t, sessions)
 		assert.ErrorIs(t, err, dbErr)
@@ -145,7 +145,7 @@ func TestSessionRepository_FindAllByUserID(t *testing.T) {
 					AddRow("not-a-uuid", nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil),
 			)
 
-		sessions, err := repo.FindAllByUserID(context.Background(), uuid.New())
+		sessions, err := repo.FindAllByUserID(context.Background(), uuid.New().String())
 
 		assert.Nil(t, sessions)
 		assert.Error(t, err)
@@ -159,7 +159,7 @@ func TestSessionRepository_FindAllByUserID(t *testing.T) {
 func TestSessionRepository_FindBySessionID(t *testing.T) {
 	t.Run("found", func(t *testing.T) {
 		repo, mock := newSessionRepoMock(t)
-		s := newTestSession(uuid.New())
+		s := newTestSession(uuid.New().String())
 
 		mock.ExpectQuery(`select .+ from sessions where id = \$1`).
 			WithArgs(s.ID).
@@ -184,7 +184,7 @@ func TestSessionRepository_FindBySessionID(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnError(sql.ErrNoRows)
 
-		got, err := repo.FindBySessionID(context.Background(), uuid.New())
+		got, err := repo.FindBySessionID(context.Background(), uuid.New().String())
 
 		assert.Nil(t, got)
 		assert.ErrorIs(t, err, domain.ErrSessionNotFound)
@@ -198,7 +198,7 @@ func TestSessionRepository_FindBySessionID(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnError(dbErr)
 
-		got, err := repo.FindBySessionID(context.Background(), uuid.New())
+		got, err := repo.FindBySessionID(context.Background(), uuid.New().String())
 
 		assert.Nil(t, got)
 		assert.ErrorIs(t, err, dbErr)
@@ -212,7 +212,7 @@ func TestSessionRepository_FindBySessionID(t *testing.T) {
 func TestSessionRepository_Create(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo, mock := newSessionRepoMock(t)
-		s := newTestSession(uuid.New())
+		s := newTestSession(uuid.New().String())
 
 		mock.ExpectExec(`insert into sessions`).
 			WithArgs(
@@ -247,7 +247,7 @@ func TestSessionRepository_Create(t *testing.T) {
 			).
 			WillReturnError(dbErr)
 
-		err := repo.Create(context.Background(), newTestSession(uuid.New()))
+		err := repo.Create(context.Background(), newTestSession(uuid.New().String()))
 
 		assert.ErrorIs(t, err, dbErr)
 	})
@@ -260,7 +260,7 @@ func TestSessionRepository_Create(t *testing.T) {
 func TestSessionRepository_Update(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo, mock := newSessionRepoMock(t)
-		s := newTestSession(uuid.New())
+		s := newTestSession(uuid.New().String())
 
 		mock.ExpectExec(`update sessions`).
 			WithArgs(
@@ -295,7 +295,7 @@ func TestSessionRepository_Update(t *testing.T) {
 			).
 			WillReturnResult(sqlmock.NewResult(0, 0))
 
-		err := repo.Update(context.Background(), newTestSession(uuid.New()))
+		err := repo.Update(context.Background(), newTestSession(uuid.New().String()))
 
 		assert.ErrorIs(t, err, domain.ErrSessionNotFound)
 	})
@@ -313,7 +313,7 @@ func TestSessionRepository_Update(t *testing.T) {
 			).
 			WillReturnError(dbErr)
 
-		err := repo.Update(context.Background(), newTestSession(uuid.New()))
+		err := repo.Update(context.Background(), newTestSession(uuid.New().String()))
 
 		assert.ErrorIs(t, err, dbErr)
 	})
@@ -326,7 +326,7 @@ func TestSessionRepository_Update(t *testing.T) {
 func TestSessionRepository_TerminateAllByUserID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo, mock := newSessionRepoMock(t)
-		userID := uuid.New()
+		userID := uuid.New().String()
 
 		mock.ExpectExec(`update sessions`).
 			WithArgs(userID).
@@ -344,7 +344,7 @@ func TestSessionRepository_TerminateAllByUserID(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewResult(0, 0))
 
-		err := repo.TerminateAllByUserID(context.Background(), uuid.New())
+		err := repo.TerminateAllByUserID(context.Background(), uuid.New().String())
 
 		assert.ErrorIs(t, err, domain.ErrAlreadyCleanSessions)
 	})
@@ -357,7 +357,7 @@ func TestSessionRepository_TerminateAllByUserID(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnError(dbErr)
 
-		err := repo.TerminateAllByUserID(context.Background(), uuid.New())
+		err := repo.TerminateAllByUserID(context.Background(), uuid.New().String())
 
 		assert.ErrorIs(t, err, dbErr)
 	})
@@ -370,7 +370,7 @@ func TestSessionRepository_TerminateAllByUserID(t *testing.T) {
 func TestSessionRepository_TerminateBySessionID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo, mock := newSessionRepoMock(t)
-		sessionID := uuid.New()
+		sessionID := uuid.New().String()
 
 		mock.ExpectExec(`update sessions`).
 			WithArgs(sessionID).
@@ -388,7 +388,7 @@ func TestSessionRepository_TerminateBySessionID(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewResult(0, 0))
 
-		err := repo.TerminateBySessionID(context.Background(), uuid.New())
+		err := repo.TerminateBySessionID(context.Background(), uuid.New().String())
 
 		assert.ErrorIs(t, err, domain.ErrSessionNotFound)
 	})
@@ -401,7 +401,7 @@ func TestSessionRepository_TerminateBySessionID(t *testing.T) {
 			WithArgs(sqlmock.AnyArg()).
 			WillReturnError(dbErr)
 
-		err := repo.TerminateBySessionID(context.Background(), uuid.New())
+		err := repo.TerminateBySessionID(context.Background(), uuid.New().String())
 
 		assert.ErrorIs(t, err, dbErr)
 	})

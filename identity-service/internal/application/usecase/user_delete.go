@@ -5,13 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"identity-service/internal/application/port"
-
-	"github.com/google/uuid"
 )
 
 // 1. Determine the input
 type UserDeleteInput struct {
-	UserID   uuid.UUID
+	UserID   string
 	Password string
 }
 
