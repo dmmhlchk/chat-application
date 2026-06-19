@@ -1,6 +1,35 @@
 
 services:
-  # --- IDENTITY SERVICE, DATABASE & MIGRATIONS ---
+  # --- COMMON: NATS JETSTREAM ---
+  nats-jetstream:
+    image: nats:2.10-alpine
+    command: "-js -sd /data --http_port 8222"
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - nats-data:/nats-data
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  # --- IDENTITY: SERVICE, CACHE, DATABASE & MIGRATIONS ---
+  identity-cache:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - identity_redis_data:/identity_redis_data
+    helthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
   identity-db:
     image: postgres:16-alpine
     environment:
@@ -12,7 +41,7 @@ services:
     volumes:
       - identity_pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U identity_user -d identity_db"]
+      test: ["CMD", "pg_isready", "-U", "identity_user", "-d", "identity_db"]
       interval: 3s
       timeout: 3s
       retries: 5
@@ -30,10 +59,30 @@ services:
       identity-db:
         condition: service_healthy
 
-  # identity-service:
+  identity-service:
+    build:
+      context: ./identity-check
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - POSTGRES_URL=postgres://identity_user:identity_password@identity-db:5432/identity_db?sslmode=disable
+      - REDIS_URL=redis://identity-cache:6379
+      - JWT_SECRET=68a5f0e0-6bf0-4b25-8c38-5b9c706bf21d
+    ports:
+      - "8081:8081"
+    depends_on:
+      nats-jetstream:
+        condition: service_healthy
+      identity-cache:
+        condition: service_healthy
+      identity-db:
+        condition: service_healthy
+      identity-migrate:
+        condition: service_completed_successfully
+      
+      
 
-
-  # --- COMMUNICATION SERVICE, DATABASE & MIGRATIONS ---
+  # --- COMMUNICATION: SERVICE, DATABASE & MIGRATIONS ---
   communication-db:
     image: postgres:16-alpine
     environment:
@@ -45,7 +94,7 @@ services:
     volumes:
       - comms_pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U comms_user -d communication_db"]
+      test: ["CMD", "pg_isready", "-U", "comms_user", "-d", "communication_db"]
       interval: 3s
       timeout: 3s
       retries: 5
@@ -67,5 +116,7 @@ services:
 
   
 volumes:
+  nats-data:
+  identity_redis_data:
   identity_pg_data:
   comms_pg_data:
