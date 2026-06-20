@@ -45,7 +45,7 @@ func (e *EventPublisher) publish(ctx context.Context, subject, eventType string,
 
 	_, err = e.js.PublishMsg(msg, nats.Context(ctx))
 	if err != nil {
-		return fmt.Errorf("nats: failed to publish %s to %q: %w", eventType, subject, err)
+		return fmt.Errorf("nats - failed to publish %s to %q: %w", eventType, subject, err)
 	}
 
 	return nil
