@@ -30,7 +30,7 @@ func TestPasswordResetConfirm_Success(t *testing.T) {
 	otpRepo.On("Delete", ctx, "+996700000000").Return(nil)
 
 	uc := usecase.NewPasswordResetConfirm(userRepo, sessionWriter, otpRepo, hasher)
-	err := uc.Execute(ctx, usecase.ResetConfirmInput{
+	err := uc.Execute(ctx, usecase.PasswordResetConfirmInput{
 		Phone:       "+996700000000",
 		Code:        "654321",
 		NewPassword: "NewP@ss2!",
@@ -52,7 +52,7 @@ func TestPasswordResetConfirm_PasswordTooShort(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	uc := usecase.NewPasswordResetConfirm(userRepo, sessionWriter, otpRepo, hasher)
-	err := uc.Execute(ctx, usecase.ResetConfirmInput{
+	err := uc.Execute(ctx, usecase.PasswordResetConfirmInput{
 		Phone:       "+996700000000",
 		Code:        "654321",
 		NewPassword: "short",
@@ -80,7 +80,7 @@ func TestPasswordResetConfirm_PasswordExactly8Chars(t *testing.T) {
 	otpRepo.On("Delete", ctx, "+996700000000").Return(nil)
 
 	uc := usecase.NewPasswordResetConfirm(userRepo, sessionWriter, otpRepo, hasher)
-	err := uc.Execute(ctx, usecase.ResetConfirmInput{
+	err := uc.Execute(ctx, usecase.PasswordResetConfirmInput{
 		Phone:       "+996700000000",
 		Code:        "654321",
 		NewPassword: "Exact8Ch",
@@ -100,7 +100,7 @@ func TestPasswordResetConfirm_InvalidOTPCode(t *testing.T) {
 	otpRepo.On("Verify", ctx, "+996700000000", "000000").Return(false, nil)
 
 	uc := usecase.NewPasswordResetConfirm(userRepo, sessionWriter, otpRepo, hasher)
-	err := uc.Execute(ctx, usecase.ResetConfirmInput{
+	err := uc.Execute(ctx, usecase.PasswordResetConfirmInput{
 		Phone:       "+996700000000",
 		Code:        "000000",
 		NewPassword: "NewP@ss2!",
@@ -121,7 +121,7 @@ func TestPasswordResetConfirm_OTPVerifyError(t *testing.T) {
 	otpRepo.On("Verify", ctx, "+996700000000", "654321").Return(false, errors.New("redis timeout"))
 
 	uc := usecase.NewPasswordResetConfirm(userRepo, sessionWriter, otpRepo, hasher)
-	err := uc.Execute(ctx, usecase.ResetConfirmInput{
+	err := uc.Execute(ctx, usecase.PasswordResetConfirmInput{
 		Phone:       "+996700000000",
 		Code:        "654321",
 		NewPassword: "NewP@ss2!",
@@ -142,7 +142,7 @@ func TestPasswordResetConfirm_UserNotFound(t *testing.T) {
 	userRepo.On("FindByPhone", ctx, "+996700000000").Return(nil, nil)
 
 	uc := usecase.NewPasswordResetConfirm(userRepo, sessionWriter, otpRepo, hasher)
-	err := uc.Execute(ctx, usecase.ResetConfirmInput{
+	err := uc.Execute(ctx, usecase.PasswordResetConfirmInput{
 		Phone:       "+996700000000",
 		Code:        "654321",
 		NewPassword: "NewP@ss2!",
@@ -164,7 +164,7 @@ func TestPasswordResetConfirm_FindByPhoneError(t *testing.T) {
 	userRepo.On("FindByPhone", ctx, "+996700000000").Return(nil, errors.New("db error"))
 
 	uc := usecase.NewPasswordResetConfirm(userRepo, sessionWriter, otpRepo, hasher)
-	err := uc.Execute(ctx, usecase.ResetConfirmInput{
+	err := uc.Execute(ctx, usecase.PasswordResetConfirmInput{
 		Phone:       "+996700000000",
 		Code:        "654321",
 		NewPassword: "NewP@ss2!",
@@ -187,7 +187,7 @@ func TestPasswordResetConfirm_TerminateSessionsError(t *testing.T) {
 	sessionWriter.On("TerminateAllByUserID", ctx, user.ID).Return(errors.New("db error"))
 
 	uc := usecase.NewPasswordResetConfirm(userRepo, sessionWriter, otpRepo, hasher)
-	err := uc.Execute(ctx, usecase.ResetConfirmInput{
+	err := uc.Execute(ctx, usecase.PasswordResetConfirmInput{
 		Phone:       "+996700000000",
 		Code:        "654321",
 		NewPassword: "NewP@ss2!",
@@ -212,7 +212,7 @@ func TestPasswordResetConfirm_HashError(t *testing.T) {
 	hasher.On("Hash", "NewP@ss2!").Return("", errors.New("bcrypt error"))
 
 	uc := usecase.NewPasswordResetConfirm(userRepo, sessionWriter, otpRepo, hasher)
-	err := uc.Execute(ctx, usecase.ResetConfirmInput{
+	err := uc.Execute(ctx, usecase.PasswordResetConfirmInput{
 		Phone:       "+996700000000",
 		Code:        "654321",
 		NewPassword: "NewP@ss2!",
@@ -238,7 +238,7 @@ func TestPasswordResetConfirm_UpdateUserError(t *testing.T) {
 	userRepo.On("Update", ctx, mock.AnythingOfType("*domain.User")).Return(errors.New("db write error"))
 
 	uc := usecase.NewPasswordResetConfirm(userRepo, sessionWriter, otpRepo, hasher)
-	err := uc.Execute(ctx, usecase.ResetConfirmInput{
+	err := uc.Execute(ctx, usecase.PasswordResetConfirmInput{
 		Phone:       "+996700000000",
 		Code:        "654321",
 		NewPassword: "NewP@ss2!",
@@ -267,7 +267,7 @@ func TestPasswordResetConfirm_OTPDeleteFailureIsIgnored(t *testing.T) {
 	otpRepo.On("Delete", ctx, "+996700000000").Return(errors.New("redis error"))
 
 	uc := usecase.NewPasswordResetConfirm(userRepo, sessionWriter, otpRepo, hasher)
-	err := uc.Execute(ctx, usecase.ResetConfirmInput{
+	err := uc.Execute(ctx, usecase.PasswordResetConfirmInput{
 		Phone:       "+996700000000",
 		Code:        "654321",
 		NewPassword: "NewP@ss2!",

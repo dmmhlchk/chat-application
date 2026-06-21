@@ -9,7 +9,7 @@ import (
 )
 
 // 1. Determine the input
-type ResetConfirmInput struct {
+type PasswordResetConfirmInput struct {
 	Phone       string
 	Code        string
 	NewPassword string
@@ -38,7 +38,7 @@ func NewPasswordResetConfirm(
 }
 
 // 3. Busines flow of the reseting password (part 2: verify sms code + reset the password)
-func (uc *PasswordResetConfirm) Execute(ctx context.Context, input ResetConfirmInput) error {
+func (uc *PasswordResetConfirm) Execute(ctx context.Context, input PasswordResetConfirmInput) error {
 	// 1. Validate password strength constraints
 	if len(input.NewPassword) < 8 {
 		return errors.New("password must be at least 8 characters long")
