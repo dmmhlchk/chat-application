@@ -13,7 +13,7 @@ import (
 	"identity-service/internal/domain"
 )
 
-// ─── Mocks ───────────────────────────────────────────────────────────────────
+// ___ Mocks _________________________________________________________________
 
 type mockSessionRepository struct{ mock.Mock }
 
@@ -58,7 +58,7 @@ func (m *mockTokenGenerator) ValidateToken(token string) (string, string, error)
 	return args.String(0), args.String(1), args.Error(2)
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ___ Helpers _________________________________________________________________
 
 func newSignInUC(
 	uuidProv *mockUUIDProvider,
@@ -94,7 +94,7 @@ func fakeUser() *domain.User {
 	}
 }
 
-// ─── Tests ───────────────────────────────────────────────────────────────────
+// ___ Tests _________________________________________________________________
 
 func TestSignIn_Success(t *testing.T) {
 	ctx := context.Background()

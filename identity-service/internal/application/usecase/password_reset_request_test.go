@@ -13,7 +13,7 @@ import (
 	"identity-service/internal/domain"
 )
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
+// ___ Tests _________________________________________________________________
 
 func TestPasswordResetRequest_Success(t *testing.T) {
 	ctx := context.Background()

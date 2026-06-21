@@ -12,7 +12,7 @@ import (
 	"identity-service/internal/domain"
 )
 
-// ─── Mock ─────────────────────────────────────────────────────────────────────
+// ___ Mock _________________________________________________________________
 
 type mockSessionWriter struct{ mock.Mock }
 
@@ -32,7 +32,7 @@ func (m *mockSessionWriter) TerminateBySessionID(ctx context.Context, sessionID 
 	return m.Called(ctx, sessionID).Error(0)
 }
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
+// ___ Tests _________________________________________________________________
 
 func TestChangePassword_Success(t *testing.T) {
 	ctx := context.Background()

@@ -13,7 +13,7 @@ import (
 	"identity-service/internal/domain"
 )
 
-// ─── Mocks ───────────────────────────────────────────────────────────────────
+// ___ Mocks _________________________________________________________________
 
 type mockUserReader struct{ mock.Mock }
 
@@ -78,7 +78,7 @@ func (m *mockOTPCacheRepository) Delete(ctx context.Context, phone string) error
 	return m.Called(ctx, phone).Error(0)
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ___ Helpers _________________________________________________________________
 
 func newSignUpRequestUC(
 	userReader *mockUserReader,
@@ -89,7 +89,7 @@ func newSignUpRequestUC(
 	return usecase.NewSignUpRequest(userReader, publisher, otpGen, otpRepo)
 }
 
-// ─── Tests ───────────────────────────────────────────────────────────────────
+// ___ Tests _________________________________________________________________
 
 func TestSignUpRequest_Success(t *testing.T) {
 	ctx := context.Background()

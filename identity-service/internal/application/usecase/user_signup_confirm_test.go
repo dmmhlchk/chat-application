@@ -12,7 +12,7 @@ import (
 	"identity-service/internal/domain"
 )
 
-// ─── Mocks ───────────────────────────────────────────────────────────────────
+// ___ Mocks _________________________________________________________________
 
 type mockUserRepository struct{ mock.Mock }
 
@@ -75,7 +75,7 @@ func (m *mockUUIDProvider) Generate() string {
 	return m.Called().String(0)
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ___ Helpers _________________________________________________________________
 
 func newSignUpConfirmUC(
 	uuidProvider *mockUUIDProvider,
@@ -95,7 +95,7 @@ func validSignUpConfirmInput() usecase.SignUpConfirmInput {
 	}
 }
 
-// ─── Tests ───────────────────────────────────────────────────────────────────
+// ___ Tests _________________________________________________________________
 
 func TestSignUpConfirm_Success(t *testing.T) {
 	ctx := context.Background()

@@ -13,7 +13,7 @@ import (
 	"identity-service/internal/domain"
 )
 
-// ─── Mock ─────────────────────────────────────────────────────────────────────
+// ___ Mock _________________________________________________________________
 
 type mockSessionReader struct{ mock.Mock }
 
@@ -30,7 +30,7 @@ func (m *mockSessionReader) FindBySessionID(ctx context.Context, sessionID strin
 	return args.Get(0).(*domain.Session), args.Error(1)
 }
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
+// ___ Tests _________________________________________________________________
 
 func TestSessionList_Success_MarksCurrentSession(t *testing.T) {
 	ctx := context.Background()

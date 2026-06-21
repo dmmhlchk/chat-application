@@ -11,7 +11,7 @@ import (
 	"identity-service/internal/application/usecase"
 )
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
+// ___ Tests _________________________________________________________________
 
 func TestUserDelete_Success(t *testing.T) {
 	ctx := context.Background()
