@@ -1,4 +1,3 @@
-
 services:
   # --- COMMON: NATS JETSTREAM ---
   nats-jetstream:
@@ -14,7 +13,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
 
   # --- IDENTITY: SERVICE, CACHE, DATABASE & MIGRATIONS ---
   identity-cache:
@@ -50,9 +48,8 @@ services:
     image: migrate/migrate
     volumes:
       # Relative path goes into the identity-service directory
-      - ./identity-service/migrations:/migrations
-    command:
-      -path=/migrations
+      - ./cmd/identity-api-service/migrations:/migrations
+    command: -path=/migrations
       -database="postgres://identity_user:identity_password@identity-db:5432/identity_db?sslmode=disable"
       up
     depends_on:
@@ -79,8 +76,6 @@ services:
         condition: service_healthy
       identity-migrate:
         condition: service_completed_successfully
-      
-      
 
   # --- COMMUNICATION: SERVICE, DATABASE & MIGRATIONS ---
   communication-db:
@@ -103,9 +98,8 @@ services:
     image: migrate/migrate
     volumes:
       # Relative path goes into the communication-service directory
-      - ./communication-service/migrations:/migrations
-    command:
-      -path=/migrations
+      - ./cmd/communication-api-service/migrations:/migrations
+    command: -path=/migrations
       -database="postgres://comms_user:comms_password@communication-db:5432/communication_db?sslmode=disable"
       up
     depends_on:
@@ -114,7 +108,6 @@ services:
 
   # communication-service:
 
-  
 volumes:
   nats-data:
   identity_redis_data:
