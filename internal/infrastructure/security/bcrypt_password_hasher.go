@@ -1,7 +1,7 @@
 package security
 
 import (
-	"internal/application/port"
+	"chat-application/internal/application/port"
 
 	"golang.org/x/crypto/bcrypt"
 )

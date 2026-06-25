@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"internal/application/usecase"
-	"internal/domain"
+	"chat-application/internal/application/usecase"
+	"chat-application/internal/domain"
 )
 
 // ___ Mock _________________________________________________________________

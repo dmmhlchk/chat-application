@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"internal/application/port"
-	"internal/domain"
-	reporedis "internal/infrastructure/persistence/redis"
+	"chat-application/internal/application/port"
+	"chat-application/internal/domain"
+	reporedis "chat-application/internal/infrastructure/persistence/redis"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"

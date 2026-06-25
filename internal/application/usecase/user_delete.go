@@ -1,10 +1,10 @@
 package usecase
 
 import (
+	"chat-application/internal/application/port"
 	"context"
 	"errors"
 	"fmt"
-	"internal/application/port"
 )
 
 // 1. Determine the input

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"internal/application/port"
-	"internal/domain"
+	"chat-application/internal/application/port"
+	"chat-application/internal/domain"
 )
 
 // 1. Determine the input and the output
