@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"internal/application/port"
+	"chat-application/internal/application/port"
 
 	"github.com/golang-jwt/jwt/v5"
 )

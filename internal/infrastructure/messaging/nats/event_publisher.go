@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"internal/application/port"
-	"internal/domain"
+	"chat-application/internal/application/port"
+	"chat-application/internal/domain"
 
 	"github.com/nats-io/nats.go"
 )

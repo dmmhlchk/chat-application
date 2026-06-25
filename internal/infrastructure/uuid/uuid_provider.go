@@ -1,12 +1,12 @@
 package uuid
 
 import (
-	"internal/application/port"
+	"chat-application/internal/application/port"
 
 	"github.com/google/uuid"
 )
 
-var _ port.UUIDProvider = (*UUIDProvider)(nil)
+var _ port.UUIDProvider = &UUIDProvider{}
 
 type UUIDProvider struct{}
 

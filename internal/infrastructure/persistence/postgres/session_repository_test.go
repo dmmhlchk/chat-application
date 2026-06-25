@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"internal/domain"
-	"internal/infrastructure/persistence/postgres"
+	"chat-application/internal/domain"
+	"chat-application/internal/infrastructure/persistence/postgres"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"

@@ -2,10 +2,19 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 )
 
 func main() {
-	fmt.Println("Identity API Service!")
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Identity Service")
+	})
+
+	fmt.Println("Starting server at port 8080")
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		fmt.Println("Error starting the server:", err)
+	}
 }
 
 /*
@@ -16,10 +25,10 @@ import (
 	"os"
 	"time"
 
-	"internal/application/usecase"
-	"internal/infrastructure/persistence/postgres"
-	"internal/infrastructure/persistence/redis"
-	"internal/infrastructure/security"
+	"chat-application/internal/application/usecase"
+	"chat-application/internal/infrastructure/persistence/postgres"
+	"chat-application/internal/infrastructure/persistence/redis"
+	"chat-application/internal/infrastructure/security"
 
 	"github.com/redis/go-redis/v9"
 )

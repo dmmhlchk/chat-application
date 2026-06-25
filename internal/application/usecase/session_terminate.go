@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"internal/application/port"
+	"chat-application/internal/application/port"
 )
 
 // 1. Determine the input

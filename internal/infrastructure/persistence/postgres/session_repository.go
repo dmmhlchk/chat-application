@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	"internal/application/port"
-	"internal/domain"
+	"chat-application/internal/application/port"
+	"chat-application/internal/domain"
 )
 
 var _ port.SessionRepository = (*SessionRepository)(nil)

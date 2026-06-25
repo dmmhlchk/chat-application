@@ -1,8 +1,8 @@
 package v1
 
 import (
+	"chat-application/internal/application/usecase"
 	"encoding/json"
-	"internal/application/usecase"
 	"mime"
 	"net/http"
 )

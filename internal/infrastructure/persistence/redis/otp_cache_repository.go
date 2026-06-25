@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"internal/application/port"
-	"internal/domain"
+	"chat-application/internal/application/port"
+	"chat-application/internal/domain"
 
 	"github.com/redis/go-redis/v9"
 )

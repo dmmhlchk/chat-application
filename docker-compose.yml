@@ -22,7 +22,7 @@ services:
       - "6379:6379"
     volumes:
       - identity_redis_data:/identity_redis_data
-    helthcheck:
+    healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 3s
       timeout: 3s
@@ -58,15 +58,15 @@ services:
 
   identity-service:
     build:
-      context: ./identity-check
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: cmd/identity-api-service/Dockerfile
     restart: unless-stopped
     environment:
-      - POSTGRES_URL=postgres://identity_user:identity_password@identity-db:5432/identity_db?sslmode=disable
       - REDIS_URL=redis://identity-cache:6379
       - JWT_SECRET=68a5f0e0-6bf0-4b25-8c38-5b9c706bf21d
+      - POSTGRES_URL=postgres://identity_user:identity_password@identity-db:5432/identity_db?sslmode=disable
     ports:
-      - "8081:8081"
+      - "8080:8080"
     depends_on:
       nats-jetstream:
         condition: service_healthy

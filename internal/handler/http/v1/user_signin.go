@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"internal/application/usecase"
-	"internal/domain"
+	"chat-application/internal/application/usecase"
+	"chat-application/internal/domain"
 
 	"mime"
 )

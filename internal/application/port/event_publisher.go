@@ -1,8 +1,8 @@
 package port
 
 import (
+	"chat-application/internal/domain"
 	"context"
-	"internal/domain"
 )
 
 type EventPublisher interface {

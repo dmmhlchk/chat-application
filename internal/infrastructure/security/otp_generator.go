@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"internal/application/port"
+	"chat-application/internal/application/port"
 )
 
 // Compile-time interface guard

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"internal/application/usecase"
+	"chat-application/internal/application/usecase"
 )
 
 // 1. Determine presentation inputs
