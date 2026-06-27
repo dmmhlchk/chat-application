@@ -1,4 +1,4 @@
-package uuid
+package identifier
 
 import (
 	"chat-app/internal/identity/application/generator"

@@ -44,7 +44,11 @@ func (uc *SignUpRequest) Execute(ctx context.Context, input SignUpRequestInput) 
 	// 1. Verify that the user actually exists by phone number
 	user, err := uc.userReader.FindByPhone(ctx, input.Phone)
 	if err != nil {
-		return fmt.Errorf("failed to look up account: %w", err)
+		if errors.Is(err, domain.ErrUserNotFound) {
+			user = nil
+		} else {
+			return fmt.Errorf("failed to look up account: %w", err)
+		}
 	}
 	if user != nil {
 		return errors.New("that phone number is already taken")

@@ -10,8 +10,8 @@ import (
 // Config for the NATS JS client
 type Config struct {
 	URL            string
-	MaxReconnecs   int
-	ReconnecWait   time.Duration
+	MaxReconnects  int
+	ReconnectWait  time.Duration
 	ConnectTimeout time.Duration
 }
 
@@ -22,8 +22,8 @@ type Client struct {
 
 func NewClient(cfg Config) (*Client, error) {
 	opts := []nats.Option{
-		nats.MaxReconnects(cfg.MaxReconnecs),
-		nats.ReconnectWait(cfg.ReconnecWait),
+		nats.MaxReconnects(cfg.MaxReconnects),
+		nats.ReconnectWait(cfg.ReconnectWait),
 		nats.Timeout(cfg.ConnectTimeout),
 
 		// These three handlers exist purely for observability

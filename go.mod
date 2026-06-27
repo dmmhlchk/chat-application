@@ -10,6 +10,7 @@ require (
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/klauspost/compress v1.18.5 // indirect
+	github.com/lib/pq v1.12.3 // indirect
 	github.com/nats-io/nkeys v0.4.15 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect

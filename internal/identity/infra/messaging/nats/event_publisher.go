@@ -22,6 +22,10 @@ type EventPublisher struct {
 	js nats.JetStreamContext
 }
 
+func NewEventPublisher(js nats.JetStreamContext) *EventPublisher {
+	return &EventPublisher{js: js}
+}
+
 func (e *EventPublisher) PublishUserCreated(ctx context.Context, evt domain.UserCreated) error {
 	return e.publish(ctx, SubjectUserCreated, "UserCreated", evt)
 }

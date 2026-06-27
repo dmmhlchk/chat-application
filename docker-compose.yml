@@ -65,6 +65,7 @@ services:
       - REDIS_URL=redis://identity-cache:6379
       - JWT_SECRET=68a5f0e0-6bf0-4b25-8c38-5b9c706bf21d
       - POSTGRES_URL=postgres://identity_user:identity_password@identity-db:5432/identity_db?sslmode=disable
+      - NATS_URL=nats://nats-jetstream:4222
     ports:
       - "8080:8080"
     depends_on:

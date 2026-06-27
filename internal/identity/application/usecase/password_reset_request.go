@@ -19,23 +19,23 @@ type PasswordResetRequestInput struct {
 
 // 2. Determine the dependencies
 type PasswordResetRequest struct {
-	userReader   repository.UserReader
-	otpPublisher publisher.EventPublisher
-	otpGen       generator.OTPGenerator
-	otpRepo      repository.OTPCacheRepository
+	userReader     repository.UserReader
+	eventPublisher publisher.EventPublisher
+	otpGen         generator.OTPGenerator
+	otpRepo        repository.OTPCacheRepository
 }
 
 func NewPasswordResetRequest(
 	userReader repository.UserReader,
-	otpPublisher publisher.EventPublisher,
+	eventPublisher publisher.EventPublisher,
 	otpGen generator.OTPGenerator,
 	otpRepo repository.OTPCacheRepository,
 ) *PasswordResetRequest {
 	return &PasswordResetRequest{
-		userReader:   userReader,
-		otpPublisher: otpPublisher,
-		otpGen:       otpGen,
-		otpRepo:      otpRepo,
+		userReader:     userReader,
+		eventPublisher: eventPublisher,
+		otpGen:         otpGen,
+		otpRepo:        otpRepo,
 	}
 }
 
@@ -68,7 +68,7 @@ func (uc *PasswordResetRequest) Execute(ctx context.Context, input PasswordReset
 		Code:  code,
 	}
 
-	err = uc.otpPublisher.PublishOTPCreated(ctx, evt)
+	err = uc.eventPublisher.PublishOTPCreated(ctx, evt)
 	if err != nil {
 		return fmt.Errorf("failed to dispatch text message: %w", err)
 	}
