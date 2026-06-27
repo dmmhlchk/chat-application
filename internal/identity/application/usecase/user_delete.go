@@ -1,0 +1,61 @@
+package usecase
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	"chat-app/internal/identity/application/crypto"
+	"chat-app/internal/identity/application/repository"
+)
+
+// 1. Determine the input
+type UserDeleteInput struct {
+	UserID   string
+	Password string
+}
+
+// 2. Determine the dependencies
+type UserDelete struct {
+	userRepo       repository.UserRepository
+	passwordHasher crypto.PasswordHasher
+}
+
+func NewUserDelete(
+	userRepo repository.UserRepository,
+	passwordHasher crypto.PasswordHasher,
+) *UserDelete {
+	return &UserDelete{
+		userRepo:       userRepo,
+		passwordHasher: passwordHasher,
+	}
+}
+
+// 3. Business flow of deleting user data
+func (uc *UserDelete) Execute(ctx context.Context, input UserDeleteInput) error {
+	// 1. Fetch user data
+	user, err := uc.userRepo.FindByUserID(ctx, input.UserID)
+	if err != nil {
+		return fmt.Errorf("failed to look up account: %w", err)
+	}
+	if user == nil {
+		return errors.New("user account not found")
+	}
+
+	// 2. Compare passwords
+	match, err := uc.passwordHasher.Compare(user.PasswordHash, input.Password)
+	if err != nil {
+		return fmt.Errorf("failed to compare passwords: %w", err)
+	}
+	if !match {
+		return errors.New("incorrect password")
+	}
+
+	// 3. Delete the primary user profile entity
+	err = uc.userRepo.Delete(ctx, input.UserID)
+	if err != nil {
+		return fmt.Errorf("failed to finalize user erasure: %w", err)
+	}
+
+	return nil
+}

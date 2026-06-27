@@ -48,7 +48,7 @@ services:
     image: migrate/migrate
     volumes:
       # Relative path goes into the identity-service directory
-      - ./cmd/identity-api-service/migrations:/migrations
+      - ./migrations/identity:/migrations
     command: -path=/migrations
       -database="postgres://identity_user:identity_password@identity-db:5432/identity_db?sslmode=disable"
       up
@@ -77,39 +77,39 @@ services:
       identity-migrate:
         condition: service_completed_successfully
 
-  # --- COMMUNICATION: SERVICE, DATABASE & MIGRATIONS ---
-  communication-db:
+  # --- MESSANGER: SERVICE, DATABASE & MIGRATIONS ---
+  messanger-db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: comms_user
-      POSTGRES_PASSWORD: comms_password
-      POSTGRES_DB: communication_db
+      POSTGRES_USER: messanger_user
+      POSTGRES_PASSWORD: messanger_password
+      POSTGRES_DB: messanger_db
     ports:
       - "5052:5432"
     volumes:
-      - comms_pg_data:/var/lib/postgresql/data
+      - messanger_pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "comms_user", "-d", "communication_db"]
+      test: ["CMD", "pg_isready", "-U", "messanger_user", "-d", "messanger_db"]
       interval: 3s
       timeout: 3s
       retries: 5
 
-  communication-migrate:
+  messanger-migrate:
     image: migrate/migrate
     volumes:
-      # Relative path goes into the communication-service directory
-      - ./cmd/communication-api-service/migrations:/migrations
+      # Relative path goes into the messanger-service directory
+      - ./migrations/messanger:/migrations
     command: -path=/migrations
-      -database="postgres://comms_user:comms_password@communication-db:5432/communication_db?sslmode=disable"
+      -database="postgres://messanger_user:messanger_password@messanger-db:5432/messanger_db?sslmode=disable"
       up
     depends_on:
-      communication-db:
+      messanger-db:
         condition: service_healthy
 
-  # communication-service:
+  # messanger-service:
 
 volumes:
   nats-data:
   identity_redis_data:
   identity_pg_data:
-  comms_pg_data:
+  messanger_pg_data:
