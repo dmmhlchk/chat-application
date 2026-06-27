@@ -18,7 +18,7 @@ import (
 	"chat-app/internal/identity/infra/security/token"
 
 	v1 "chat-app/internal/identity/api/http/v1"
-	"chat-app/internal/middleware"
+	"chat-app/internal/shared/middleware"
 
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
