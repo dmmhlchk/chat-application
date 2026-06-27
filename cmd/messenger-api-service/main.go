@@ -3,5 +3,5 @@ package main
 import "fmt"
 
 func main() {
-	fmt.Println("Messanger API Service!")
+	fmt.Println("Messenger API Service!")
 }
