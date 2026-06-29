@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"chat-app/internal/identity/application/generator"
 	"chat-app/internal/identity/application/publisher"
 	"chat-app/internal/identity/application/repository"
+	"chat-app/internal/identity/application/security"
 	"chat-app/internal/identity/domain"
 )
 
@@ -21,14 +21,14 @@ type SignUpRequestInput struct {
 type SignUpRequest struct {
 	userReader     repository.UserReader
 	eventPublisher publisher.EventPublisher
-	otpGen         generator.OTPGenerator
+	otpGen         security.OTPGenerator
 	otpRepo        repository.OTPCacheRepository
 }
 
 func NewSignUpRequest(
 	userReader repository.UserReader,
 	eventPublisher publisher.EventPublisher,
-	otpGen generator.OTPGenerator,
+	otpGen security.OTPGenerator,
 	otpRepo repository.OTPCacheRepository,
 ) *SignUpRequest {
 	return &SignUpRequest{

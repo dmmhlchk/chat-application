@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"chat-app/internal/identity/application/crypto"
 	"chat-app/internal/identity/application/repository"
+	"chat-app/internal/identity/application/security"
 )
 
 // 1. Determine the input
@@ -20,13 +20,13 @@ type ChangePasswordInput struct {
 type ChangePassword struct {
 	userRepo       repository.UserRepository
 	sessionWriter  repository.SessionWriter
-	passwordHasher crypto.PasswordHasher
+	passwordHasher security.PasswordHasher
 }
 
 func NewChangePassword(
 	userRepo repository.UserRepository,
 	sessionWriter repository.SessionWriter,
-	passwordHasher crypto.PasswordHasher,
+	passwordHasher security.PasswordHasher,
 ) *ChangePassword {
 	return &ChangePassword{
 		userRepo:       userRepo,

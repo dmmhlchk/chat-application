@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"chat-app/internal/identity/application/generator"
 	"chat-app/internal/identity/application/repository"
+	"chat-app/internal/identity/application/security"
 )
 
 // 1. Determine the input
@@ -18,12 +18,12 @@ type TerminateSessionInput struct {
 // 2. Determine the dependencies
 type TerminateSession struct {
 	sessionRepo repository.SessionRepository
-	tokenGen    generator.TokenGenerator
+	tokenGen    security.TokenGenerator
 }
 
 func NewTerminateSession(
 	sessionRepo repository.SessionRepository,
-	tokenGen generator.TokenGenerator,
+	tokenGen security.TokenGenerator,
 ) *TerminateSession {
 	return &TerminateSession{
 		sessionRepo: sessionRepo,

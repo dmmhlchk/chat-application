@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"chat-app/internal/identity/application/crypto"
 	"chat-app/internal/identity/application/generator"
 	"chat-app/internal/identity/application/repository"
+	"chat-app/internal/identity/application/security"
 	"chat-app/internal/identity/domain"
 )
 
@@ -32,16 +32,16 @@ type SignIn struct {
 	idGen          generator.IDGenerator
 	userRepo       repository.UserRepository
 	sessionRepo    repository.SessionRepository
-	passwordHasher crypto.PasswordHasher
-	tokenGen       generator.TokenGenerator
+	passwordHasher security.PasswordHasher
+	tokenGen       security.TokenGenerator
 }
 
 func NewSignIn(
 	idGen generator.IDGenerator,
 	userRepo repository.UserRepository,
 	sessionRepo repository.SessionRepository,
-	passwordHasher crypto.PasswordHasher,
-	tokenGen generator.TokenGenerator,
+	passwordHasher security.PasswordHasher,
+	tokenGen security.TokenGenerator,
 ) *SignIn {
 	return &SignIn{
 		idGen:          idGen,

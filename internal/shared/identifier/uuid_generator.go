@@ -1,12 +1,6 @@
 package identifier
 
-import (
-	"chat-app/internal/identity/application/generator"
-
-	"github.com/google/uuid"
-)
-
-var _ generator.IDGenerator = &UUIDGenerator{}
+import "github.com/google/uuid"
 
 type UUIDGenerator struct{}
 

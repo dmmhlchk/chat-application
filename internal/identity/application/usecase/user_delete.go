@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"chat-app/internal/identity/application/crypto"
 	"chat-app/internal/identity/application/repository"
+	"chat-app/internal/identity/application/security"
 )
 
 // 1. Determine the input
@@ -18,12 +18,12 @@ type UserDeleteInput struct {
 // 2. Determine the dependencies
 type UserDelete struct {
 	userRepo       repository.UserRepository
-	passwordHasher crypto.PasswordHasher
+	passwordHasher security.PasswordHasher
 }
 
 func NewUserDelete(
 	userRepo repository.UserRepository,
-	passwordHasher crypto.PasswordHasher,
+	passwordHasher security.PasswordHasher,
 ) *UserDelete {
 	return &UserDelete{
 		userRepo:       userRepo,

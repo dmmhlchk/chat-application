@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"math/big"
 
-	"chat-app/internal/identity/application/generator"
+	"chat-app/internal/identity/application/security"
 )
 
 // Compile-time interface guard
-var _ generator.OTPGenerator = (*SecureOTPGenerator)(nil)
+var _ security.OTPGenerator = (*SecureOTPGenerator)(nil)
 
 type SecureOTPGenerator struct{}
 

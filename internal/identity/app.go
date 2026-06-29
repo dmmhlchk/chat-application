@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"chat-app/internal/identity/application/usecase"
-	"chat-app/internal/identity/infra/identifier"
 	"chat-app/internal/identity/infra/messaging/nats"
 	"chat-app/internal/identity/infra/persistence/postgres"
 	reporedis "chat-app/internal/identity/infra/persistence/redis"
 	"chat-app/internal/identity/infra/security/otp"
 	"chat-app/internal/identity/infra/security/password"
 	"chat-app/internal/identity/infra/security/token"
+
+	"chat-app/internal/shared/identifier"
 
 	v1 "chat-app/internal/identity/api/http/v1"
 	"chat-app/internal/shared/middleware"

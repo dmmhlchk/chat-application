@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"chat-app/internal/identity/application/crypto"
 	"chat-app/internal/identity/application/generator"
 	"chat-app/internal/identity/application/repository"
+	"chat-app/internal/identity/application/security"
 	"chat-app/internal/identity/domain"
 )
 
@@ -24,14 +24,14 @@ type SignUpConfirm struct {
 	idGen          generator.IDGenerator
 	userRepo       repository.UserRepository
 	otpRepo        repository.OTPCacheRepository
-	passwordHasher crypto.PasswordHasher
+	passwordHasher security.PasswordHasher
 }
 
 func NewSignUpConfirm(
 	idGen generator.IDGenerator,
 	userRepo repository.UserRepository,
 	otpRepo repository.OTPCacheRepository,
-	passwordHasher crypto.PasswordHasher,
+	passwordHasher security.PasswordHasher,
 ) *SignUpConfirm {
 	return &SignUpConfirm{
 		idGen:          idGen,

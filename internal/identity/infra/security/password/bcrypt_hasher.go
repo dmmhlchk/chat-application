@@ -1,12 +1,12 @@
 package password
 
 import (
-	"chat-app/internal/identity/application/crypto"
+	"chat-app/internal/identity/application/security"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-var _ crypto.PasswordHasher = (*BcryptHasher)(nil)
+var _ security.PasswordHasher = (*BcryptHasher)(nil)
 
 type BcryptHasher struct {
 	cost int

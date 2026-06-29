@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"chat-app/internal/identity/application/generator"
+	"chat-app/internal/identity/application/security"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var _ generator.TokenGenerator = (*JWTGenerator)(nil)
+var _ security.TokenGenerator = (*JWTGenerator)(nil)
 
 // struct for payload
 type UserClaims struct {

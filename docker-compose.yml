@@ -35,7 +35,7 @@ services:
       POSTGRES_PASSWORD: identity_password
       POSTGRES_DB: identity_db
     ports:
-      - "5051:5432"
+      - "5432:5432"
     volumes:
       - identity_pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -78,7 +78,7 @@ services:
       identity-migrate:
         condition: service_completed_successfully
 
-  # --- messenger: SERVICE, DATABASE & MIGRATIONS ---
+  # --- MESSENGER: SERVICE, DATABASE & MIGRATIONS ---
   messenger-db:
     image: postgres:16-alpine
     environment:
@@ -86,7 +86,7 @@ services:
       POSTGRES_PASSWORD: messenger_password
       POSTGRES_DB: messenger_db
     ports:
-      - "5052:5432"
+      - "5433:5432"
     volumes:
       - messenger_pg_data:/var/lib/postgresql/data
     healthcheck:

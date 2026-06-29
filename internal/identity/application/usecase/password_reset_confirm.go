@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"chat-app/internal/identity/application/crypto"
 	"chat-app/internal/identity/application/repository"
+	"chat-app/internal/identity/application/security"
 )
 
 // 1. Determine the input
@@ -21,14 +21,14 @@ type PasswordResetConfirm struct {
 	userRepo       repository.UserRepository
 	sessionWriter  repository.SessionWriter
 	otpRepo        repository.OTPCacheRepository
-	passwordHasher crypto.PasswordHasher
+	passwordHasher security.PasswordHasher
 }
 
 func NewPasswordResetConfirm(
 	userRepo repository.UserRepository,
 	sessionWriter repository.SessionWriter,
 	otpRepo repository.OTPCacheRepository,
-	passwordHasher crypto.PasswordHasher,
+	passwordHasher security.PasswordHasher,
 ) *PasswordResetConfirm {
 	return &PasswordResetConfirm{
 		userRepo:       userRepo,
