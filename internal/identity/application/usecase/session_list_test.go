@@ -13,7 +13,6 @@ import (
 )
 
 // ___ Tests _________________________________________________________________
-
 func TestSessionList_Success_MarksCurrentSession(t *testing.T) {
 	ctx := context.Background()
 	reader := &mockSessionReader{}
@@ -46,7 +45,8 @@ func TestSessionList_Success_MarksCurrentSession(t *testing.T) {
 		},
 	}
 
-	reader.On("FindAllByUserID", ctx, "user-001").Return(sessions, nil)
+	reader.On("FindAllByUserID", ctx, "user-001").
+		Return(sessions, nil)
 
 	uc := usecase.NewSessionList(reader)
 	out, err := uc.Execute(ctx, usecase.SessionListInput{
@@ -82,7 +82,8 @@ func TestSessionList_Success_EmptySessions(t *testing.T) {
 	ctx := context.Background()
 	reader := &mockSessionReader{}
 
-	reader.On("FindAllByUserID", ctx, "user-001").Return([]domain.Session{}, nil)
+	reader.On("FindAllByUserID", ctx, "user-001").
+		Return([]domain.Session{}, nil)
 
 	uc := usecase.NewSessionList(reader)
 	out, err := uc.Execute(ctx, usecase.SessionListInput{
@@ -103,7 +104,9 @@ func TestSessionList_Success_NoSessionMatchesCurrentToken(t *testing.T) {
 		{ID: "sess-001", RefreshTokenHash: "hash-a"},
 		{ID: "sess-002", RefreshTokenHash: "hash-b"},
 	}
-	reader.On("FindAllByUserID", ctx, "user-001").Return(sessions, nil)
+
+	reader.On("FindAllByUserID", ctx, "user-001").
+		Return(sessions, nil)
 
 	uc := usecase.NewSessionList(reader)
 	out, err := uc.Execute(ctx, usecase.SessionListInput{

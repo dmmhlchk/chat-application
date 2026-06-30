@@ -12,7 +12,6 @@ import (
 )
 
 // ___ Helpers _________________________________________________________________
-
 func newSignUpConfirmUC(
 	uuidProvider *mockIDGenerator,
 	userRepo *mockUserRepository,
@@ -32,7 +31,6 @@ func validSignUpConfirmInput() usecase.SignUpConfirmInput {
 }
 
 // ___ Tests _________________________________________________________________
-
 func TestSignUpConfirm_Success(t *testing.T) {
 	ctx := context.Background()
 
@@ -43,11 +41,20 @@ func TestSignUpConfirm_Success(t *testing.T) {
 
 	input := validSignUpConfirmInput()
 
-	otpRepo.On("Verify", ctx, input.Phone, input.Code).Return(true, nil)
-	userRepo.On("ExistsByPhoneOrUsername", ctx, input.Phone, input.Username).Return(false, nil)
-	hasher.On("Hash", input.Password).Return("$2a$hashed", nil)
-	uuidProv.On("Generate").Return("new-uuid-1234")
-	userRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).Return(nil)
+	otpRepo.On("Verify", ctx, input.Phone, input.Code).
+		Return(true, nil)
+
+	userRepo.On("ExistsByPhoneOrUsername", ctx, input.Phone, input.Username).
+		Return(false, nil)
+
+	hasher.On("Hash", input.Password).
+		Return("$2a$hashed", nil)
+
+	uuidProv.On("Generate").
+		Return("new-uuid-1234")
+
+	userRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).
+		Return(nil)
 
 	uc := newSignUpConfirmUC(uuidProv, userRepo, otpRepo, hasher)
 	err := uc.Execute(ctx, input)
@@ -103,7 +110,9 @@ func TestSignUpConfirm_InvalidOTPCode(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	input := validSignUpConfirmInput()
-	otpRepo.On("Verify", ctx, input.Phone, input.Code).Return(false, nil)
+
+	otpRepo.On("Verify", ctx, input.Phone, input.Code).
+		Return(false, nil)
 
 	uc := newSignUpConfirmUC(uuidProv, userRepo, otpRepo, hasher)
 	err := uc.Execute(ctx, input)
@@ -121,7 +130,9 @@ func TestSignUpConfirm_OTPVerifyError(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	input := validSignUpConfirmInput()
-	otpRepo.On("Verify", ctx, input.Phone, input.Code).Return(false, errors.New("redis timeout"))
+
+	otpRepo.On("Verify", ctx, input.Phone, input.Code).
+		Return(false, errors.New("redis timeout"))
 
 	uc := newSignUpConfirmUC(uuidProv, userRepo, otpRepo, hasher)
 	err := uc.Execute(ctx, input)
@@ -138,8 +149,12 @@ func TestSignUpConfirm_UserAlreadyExists(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	input := validSignUpConfirmInput()
-	otpRepo.On("Verify", ctx, input.Phone, input.Code).Return(true, nil)
-	userRepo.On("ExistsByPhoneOrUsername", ctx, input.Phone, input.Username).Return(true, nil)
+
+	otpRepo.On("Verify", ctx, input.Phone, input.Code).
+		Return(true, nil)
+
+	userRepo.On("ExistsByPhoneOrUsername", ctx, input.Phone, input.Username).
+		Return(true, nil)
 
 	uc := newSignUpConfirmUC(uuidProv, userRepo, otpRepo, hasher)
 	err := uc.Execute(ctx, input)
@@ -157,8 +172,12 @@ func TestSignUpConfirm_ExistsCheckError(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	input := validSignUpConfirmInput()
-	otpRepo.On("Verify", ctx, input.Phone, input.Code).Return(true, nil)
-	userRepo.On("ExistsByPhoneOrUsername", ctx, input.Phone, input.Username).Return(false, errors.New("db error"))
+
+	otpRepo.On("Verify", ctx, input.Phone, input.Code).
+		Return(true, nil)
+
+	userRepo.On("ExistsByPhoneOrUsername", ctx, input.Phone, input.Username).
+		Return(false, errors.New("db error"))
 
 	uc := newSignUpConfirmUC(uuidProv, userRepo, otpRepo, hasher)
 	err := uc.Execute(ctx, input)
@@ -175,9 +194,15 @@ func TestSignUpConfirm_HashError(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	input := validSignUpConfirmInput()
-	otpRepo.On("Verify", ctx, input.Phone, input.Code).Return(true, nil)
-	userRepo.On("ExistsByPhoneOrUsername", ctx, input.Phone, input.Username).Return(false, nil)
-	hasher.On("Hash", input.Password).Return("", errors.New("bcrypt failure"))
+
+	otpRepo.On("Verify", ctx, input.Phone, input.Code).
+		Return(true, nil)
+
+	userRepo.On("ExistsByPhoneOrUsername", ctx, input.Phone, input.Username).
+		Return(false, nil)
+
+	hasher.On("Hash", input.Password).
+		Return("", errors.New("bcrypt failure"))
 
 	uc := newSignUpConfirmUC(uuidProv, userRepo, otpRepo, hasher)
 	err := uc.Execute(ctx, input)
@@ -195,11 +220,21 @@ func TestSignUpConfirm_CreateUserError(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	input := validSignUpConfirmInput()
-	otpRepo.On("Verify", ctx, input.Phone, input.Code).Return(true, nil)
-	userRepo.On("ExistsByPhoneOrUsername", ctx, input.Phone, input.Username).Return(false, nil)
-	hasher.On("Hash", input.Password).Return("$2a$hashed", nil)
-	uuidProv.On("Generate").Return("new-uuid-1234")
-	userRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).Return(errors.New("db write error"))
+
+	otpRepo.On("Verify", ctx, input.Phone, input.Code).
+		Return(true, nil)
+
+	userRepo.On("ExistsByPhoneOrUsername", ctx, input.Phone, input.Username).
+		Return(false, nil)
+
+	hasher.On("Hash", input.Password).
+		Return("$2a$hashed", nil)
+
+	uuidProv.On("Generate").
+		Return("new-uuid-1234")
+
+	userRepo.On("Create", ctx, mock.AnythingOfType("*domain.User")).
+		Return(errors.New("db write error"))
 
 	uc := newSignUpConfirmUC(uuidProv, userRepo, otpRepo, hasher)
 	err := uc.Execute(ctx, input)

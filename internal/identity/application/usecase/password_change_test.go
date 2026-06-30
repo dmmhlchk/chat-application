@@ -12,7 +12,6 @@ import (
 )
 
 // ___ Tests _________________________________________________________________
-
 func TestChangePassword_Success(t *testing.T) {
 	ctx := context.Background()
 
@@ -21,11 +20,21 @@ func TestChangePassword_Success(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	user := fakeUser()
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(user, nil)
-	hasher.On("Compare", user.PasswordHash, "OldP@ss1!").Return(true, nil)
-	sessionWriter.On("TerminateAllByUserID", ctx, user.ID).Return(nil)
-	hasher.On("Hash", "NewP@ss2!").Return("$2a$new-hash", nil)
-	userRepo.On("Update", ctx, mock.AnythingOfType("*domain.User")).Return(nil)
+
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(user, nil)
+
+	hasher.On("Compare", user.PasswordHash, "OldP@ss1!").
+		Return(true, nil)
+
+	sessionWriter.On("TerminateAllByUserID", ctx, user.ID).
+		Return(nil)
+
+	hasher.On("Hash", "NewP@ss2!").
+		Return("$2a$new-hash", nil)
+
+	userRepo.On("Update", ctx, mock.AnythingOfType("*domain.User")).
+		Return(nil)
 
 	uc := usecase.NewChangePassword(userRepo, sessionWriter, hasher)
 	err := uc.Execute(ctx, usecase.ChangePasswordInput{
@@ -81,7 +90,8 @@ func TestChangePassword_UserNotFound(t *testing.T) {
 	sessionWriter := &mockSessionWriter{}
 	hasher := &mockPasswordHasher{}
 
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(nil, nil)
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(nil, nil)
 
 	uc := usecase.NewChangePassword(userRepo, sessionWriter, hasher)
 	err := uc.Execute(ctx, usecase.ChangePasswordInput{
@@ -121,8 +131,12 @@ func TestChangePassword_WrongCurrentPassword(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	user := fakeUser()
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(user, nil)
-	hasher.On("Compare", user.PasswordHash, "WrongP@ss!").Return(false, nil)
+
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(user, nil)
+
+	hasher.On("Compare", user.PasswordHash, "WrongP@ss!").
+		Return(false, nil)
 
 	uc := usecase.NewChangePassword(userRepo, sessionWriter, hasher)
 	err := uc.Execute(ctx, usecase.ChangePasswordInput{
@@ -143,8 +157,12 @@ func TestChangePassword_CompareError(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	user := fakeUser()
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(user, nil)
-	hasher.On("Compare", user.PasswordHash, "OldP@ss1!").Return(false, errors.New("bcrypt error"))
+
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(user, nil)
+
+	hasher.On("Compare", user.PasswordHash, "OldP@ss1!").
+		Return(false, errors.New("bcrypt error"))
 
 	uc := usecase.NewChangePassword(userRepo, sessionWriter, hasher)
 	err := uc.Execute(ctx, usecase.ChangePasswordInput{
@@ -164,9 +182,12 @@ func TestChangePassword_SamePassword(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	user := fakeUser()
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(user, nil)
-	// Compare succeeds — password is correct, but new == current
-	hasher.On("Compare", user.PasswordHash, "SameP@ss1!").Return(true, nil)
+
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(user, nil)
+
+	hasher.On("Compare", user.PasswordHash, "SameP@ss1!").
+		Return(true, nil)
 
 	uc := usecase.NewChangePassword(userRepo, sessionWriter, hasher)
 	err := uc.Execute(ctx, usecase.ChangePasswordInput{
@@ -187,9 +208,15 @@ func TestChangePassword_TerminateSessionsError(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	user := fakeUser()
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(user, nil)
-	hasher.On("Compare", user.PasswordHash, "OldP@ss1!").Return(true, nil)
-	sessionWriter.On("TerminateAllByUserID", ctx, user.ID).Return(errors.New("db error"))
+
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(user, nil)
+
+	hasher.On("Compare", user.PasswordHash, "OldP@ss1!").
+		Return(true, nil)
+
+	sessionWriter.On("TerminateAllByUserID", ctx, user.ID).
+		Return(errors.New("db error"))
 
 	uc := usecase.NewChangePassword(userRepo, sessionWriter, hasher)
 	err := uc.Execute(ctx, usecase.ChangePasswordInput{
@@ -210,10 +237,18 @@ func TestChangePassword_HashNewPasswordError(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	user := fakeUser()
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(user, nil)
-	hasher.On("Compare", user.PasswordHash, "OldP@ss1!").Return(true, nil)
-	sessionWriter.On("TerminateAllByUserID", ctx, user.ID).Return(nil)
-	hasher.On("Hash", "NewP@ss2!").Return("", errors.New("bcrypt error"))
+
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(user, nil)
+
+	hasher.On("Compare", user.PasswordHash, "OldP@ss1!").
+		Return(true, nil)
+
+	sessionWriter.On("TerminateAllByUserID", ctx, user.ID).
+		Return(nil)
+
+	hasher.On("Hash", "NewP@ss2!").
+		Return("", errors.New("bcrypt error"))
 
 	uc := usecase.NewChangePassword(userRepo, sessionWriter, hasher)
 	err := uc.Execute(ctx, usecase.ChangePasswordInput{
@@ -234,11 +269,21 @@ func TestChangePassword_UpdateUserError(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	user := fakeUser()
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(user, nil)
-	hasher.On("Compare", user.PasswordHash, "OldP@ss1!").Return(true, nil)
-	sessionWriter.On("TerminateAllByUserID", ctx, user.ID).Return(nil)
-	hasher.On("Hash", "NewP@ss2!").Return("$2a$new-hash", nil)
-	userRepo.On("Update", ctx, mock.AnythingOfType("*domain.User")).Return(errors.New("db write error"))
+
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(user, nil)
+
+	hasher.On("Compare", user.PasswordHash, "OldP@ss1!").
+		Return(true, nil)
+
+	sessionWriter.On("TerminateAllByUserID", ctx, user.ID).
+		Return(nil)
+
+	hasher.On("Hash", "NewP@ss2!").
+		Return("$2a$new-hash", nil)
+
+	userRepo.On("Update", ctx, mock.AnythingOfType("*domain.User")).
+		Return(errors.New("db write error"))
 
 	uc := usecase.NewChangePassword(userRepo, sessionWriter, hasher)
 	err := uc.Execute(ctx, usecase.ChangePasswordInput{

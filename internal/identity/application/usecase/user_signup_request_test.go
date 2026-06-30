@@ -14,7 +14,6 @@ import (
 )
 
 // ___ Helpers _________________________________________________________________
-
 func newSignUpRequestUC(
 	userReader *mockUserReader,
 	publisher *mockEventPublisher,
@@ -25,7 +24,6 @@ func newSignUpRequestUC(
 }
 
 // ___ Tests _________________________________________________________________
-
 func TestSignUpRequest_Success(t *testing.T) {
 	ctx := context.Background()
 
@@ -34,13 +32,20 @@ func TestSignUpRequest_Success(t *testing.T) {
 	otpGen := &mockOTPGenerator{}
 	otpRepo := &mockOTPCacheRepository{}
 
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(nil, nil)
-	otpGen.On("Generate", 6).Return("123456", nil)
-	otpRepo.On("Save", ctx, "+996700000000", "123456", 1*time.Minute).Return(nil)
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(nil, nil)
+
+	otpGen.On("Generate", 6).
+		Return("123456", nil)
+
+	otpRepo.On("Save", ctx, "+996700000000", "123456", 1*time.Minute).
+		Return(nil)
+
 	publisher.On("PublishOTPCreated", ctx, domain.OTPCreated{
 		Phone: "+996700000000",
 		Code:  "123456",
-	}).Return(nil)
+	}).
+		Return(nil)
 
 	uc := newSignUpRequestUC(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.SignUpRequestInput{Phone: "+996700000000"})
@@ -61,7 +66,9 @@ func TestSignUpRequest_PhoneAlreadyTaken(t *testing.T) {
 	otpRepo := &mockOTPCacheRepository{}
 
 	existingUser := &domain.User{ID: "some-uuid"}
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(existingUser, nil)
+
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(existingUser, nil)
 
 	uc := newSignUpRequestUC(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.SignUpRequestInput{Phone: "+996700000000"})
@@ -81,7 +88,8 @@ func TestSignUpRequest_FindByPhoneError(t *testing.T) {
 	otpGen := &mockOTPGenerator{}
 	otpRepo := &mockOTPCacheRepository{}
 
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(nil, errors.New("db error"))
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(nil, errors.New("db error"))
 
 	uc := newSignUpRequestUC(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.SignUpRequestInput{Phone: "+996700000000"})
@@ -97,8 +105,11 @@ func TestSignUpRequest_OTPGenerationError(t *testing.T) {
 	otpGen := &mockOTPGenerator{}
 	otpRepo := &mockOTPCacheRepository{}
 
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(nil, nil)
-	otpGen.On("Generate", 6).Return("", errors.New("entropy exhausted"))
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(nil, nil)
+
+	otpGen.On("Generate", 6).
+		Return("", errors.New("entropy exhausted"))
 
 	uc := newSignUpRequestUC(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.SignUpRequestInput{Phone: "+996700000000"})
@@ -115,9 +126,14 @@ func TestSignUpRequest_OTPSaveError(t *testing.T) {
 	otpGen := &mockOTPGenerator{}
 	otpRepo := &mockOTPCacheRepository{}
 
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(nil, nil)
-	otpGen.On("Generate", 6).Return("123456", nil)
-	otpRepo.On("Save", ctx, "+996700000000", "123456", 1*time.Minute).Return(errors.New("redis down"))
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(nil, nil)
+
+	otpGen.On("Generate", 6).
+		Return("123456", nil)
+
+	otpRepo.On("Save", ctx, "+996700000000", "123456", 1*time.Minute).
+		Return(errors.New("redis down"))
 
 	uc := newSignUpRequestUC(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.SignUpRequestInput{Phone: "+996700000000"})
@@ -134,13 +150,20 @@ func TestSignUpRequest_PublishEventError(t *testing.T) {
 	otpGen := &mockOTPGenerator{}
 	otpRepo := &mockOTPCacheRepository{}
 
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(nil, nil)
-	otpGen.On("Generate", 6).Return("123456", nil)
-	otpRepo.On("Save", ctx, "+996700000000", "123456", 1*time.Minute).Return(nil)
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(nil, nil)
+
+	otpGen.On("Generate", 6).
+		Return("123456", nil)
+
+	otpRepo.On("Save", ctx, "+996700000000", "123456", 1*time.Minute).
+		Return(nil)
+
 	publisher.On("PublishOTPCreated", ctx, domain.OTPCreated{
 		Phone: "+996700000000",
 		Code:  "123456",
-	}).Return(errors.New("broker unavailable"))
+	}).
+		Return(errors.New("broker unavailable"))
 
 	uc := newSignUpRequestUC(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.SignUpRequestInput{Phone: "+996700000000"})
