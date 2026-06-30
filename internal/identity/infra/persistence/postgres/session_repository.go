@@ -206,7 +206,7 @@ func (r *SessionRepository) TerminateAllByUserID(ctx context.Context, userID str
 
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
-		return domain.ErrAlreadyCleanSessions
+		return domain.ErrSessionAlreadyClean
 	}
 
 	return nil

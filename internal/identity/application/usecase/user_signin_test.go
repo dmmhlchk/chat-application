@@ -65,10 +65,8 @@ func TestSignIn_Success(t *testing.T) {
 	userRepo.On("FindByPhone", ctx, input.Phone).Return(user, nil)
 	hasher.On("Compare", user.PasswordHash, input.Password).Return(true, nil)
 	uuidProv.On("Generate").Return("session-uuid-001")
-	tokenGen.On("GenerateToken", user.ID, "session-uuid-001", mock.Anything).
-		Return("access-token", nil).Once()
-	tokenGen.On("GenerateToken", user.ID, "session-uuid-001", mock.Anything).
-		Return("refresh-token", nil).Once()
+	tokenGen.On("Generate", user.ID, "session-uuid-001", mock.Anything).Return("access-token", nil).Once()
+	tokenGen.On("Generate", user.ID, "session-uuid-001", mock.Anything).Return("refresh-token", nil).Once()
 	sessionRepo.On("Create", ctx, mock.AnythingOfType("*domain.Session")).Return(nil)
 
 	uc := newSignInUC(uuidProv, userRepo, sessionRepo, hasher, tokenGen)
@@ -224,7 +222,7 @@ func TestSignIn_AccessTokenGenerationError(t *testing.T) {
 	hasher.On("Compare", user.PasswordHash, input.Password).Return(true, nil)
 	uuidProv.On("Generate").Return("session-uuid-001")
 	// First GenerateToken call (access token) fails
-	tokenGen.On("GenerateToken", user.ID, "session-uuid-001", mock.Anything).
+	tokenGen.On("Generate", user.ID, "session-uuid-001", mock.Anything).
 		Return("", errors.New("signing error")).Once()
 
 	uc := newSignInUC(uuidProv, userRepo, sessionRepo, hasher, tokenGen)
@@ -251,9 +249,9 @@ func TestSignIn_RefreshTokenGenerationError(t *testing.T) {
 	hasher.On("Compare", user.PasswordHash, input.Password).Return(true, nil)
 	uuidProv.On("Generate").Return("session-uuid-001")
 	// First call succeeds (access token), second fails (refresh token)
-	tokenGen.On("GenerateToken", user.ID, "session-uuid-001", mock.Anything).
+	tokenGen.On("Generate", user.ID, "session-uuid-001", mock.Anything).
 		Return("access-token", nil).Once()
-	tokenGen.On("GenerateToken", user.ID, "session-uuid-001", mock.Anything).
+	tokenGen.On("Generate", user.ID, "session-uuid-001", mock.Anything).
 		Return("", errors.New("signing error")).Once()
 
 	uc := newSignInUC(uuidProv, userRepo, sessionRepo, hasher, tokenGen)
@@ -279,9 +277,9 @@ func TestSignIn_SessionCreateError(t *testing.T) {
 	userRepo.On("FindByPhone", ctx, input.Phone).Return(user, nil)
 	hasher.On("Compare", user.PasswordHash, input.Password).Return(true, nil)
 	uuidProv.On("Generate").Return("session-uuid-001")
-	tokenGen.On("GenerateToken", user.ID, "session-uuid-001", mock.Anything).
+	tokenGen.On("Generate", user.ID, "session-uuid-001", mock.Anything).
 		Return("access-token", nil).Once()
-	tokenGen.On("GenerateToken", user.ID, "session-uuid-001", mock.Anything).
+	tokenGen.On("Generate", user.ID, "session-uuid-001", mock.Anything).
 		Return("refresh-token", nil).Once()
 	sessionRepo.On("Create", ctx, mock.AnythingOfType("*domain.Session")).
 		Return(errors.New("db write error"))
