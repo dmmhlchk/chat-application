@@ -2,32 +2,65 @@ package domain
 
 import "errors"
 
-var (
-	// user errors
-	ErrUserNotFound      = errors.New("user not found")
-	ErrUserAlreadyExists = errors.New("user already exists")
-	ErrInvalidUsername   = errors.New("invalid username")
-	ErrInvalidPhone      = errors.New("invalid phone number")
+type Kind uint8
+
+const (
+	KindNotFound     Kind = iota + 1 // 404 - Not Found
+	KindConflict                     // 409 - Already exists, duplicate state
+	KindValidation                   // 404 - Invalid input
+	KindInvalidState                 // 422 - Business rule violation
 )
 
+type DomainError struct {
+	Kind    Kind
+	Message string
+}
+
+func newErr(kind Kind, message string) *DomainError {
+	return &DomainError{
+		Kind:    kind,
+		Message: message,
+	}
+}
+
+// Satisfying the "error" interface
+func (de *DomainError) Error() string {
+	return de.Message
+}
+
+func IsKind(err error, kind Kind) bool {
+	var de *DomainError
+	return errors.As(err, &de) && de.Kind == kind
+}
+
+// ___ User _________________________________________________________________
 var (
-	ErrSessionNotFound       = errors.New("session not found")
-	ErrSessionAlreadyRevoked = errors.New("session already revoked")
-	ErrSessionInvalid        = errors.New("session is invalid")
-	ErrInvalidUserID         = errors.New("invalid user id")
-	ErrAlreadyCleanSessions  = errors.New("user doesn't have any active session")
-	ErrInvalidRefreshToken   = errors.New("invalid refresh token hash")
-	ErrInvalidTTL            = errors.New("invalid ttl")
+	ErrUserNotFound        = newErr(KindNotFound, "user not found")
+	ErrUserAlreadyExists   = newErr(KindConflict, "user already exists")
+	ErrUserInvalidUsername = newErr(KindValidation, "invalid username")
+	ErrUserInvalidPhone    = newErr(KindValidation, "invalid phone number")
+	ErrUserInvalidID       = newErr(KindValidation, "invalid user id")
 )
 
+// ___ Session _________________________________________________________________
 var (
-	ErrOTPInvalid = errors.New("invalid otp code")
-	ErrOTPExpired = errors.New("otp expired")
+	ErrSessionNotFound            = newErr(KindNotFound, "session not found")
+	ErrSessionAlreadyRevoked      = newErr(KindConflict, "session already revoked")
+	ErrSessionAlreadyClean        = newErr(KindConflict, "no active sessions to clean")
+	ErrSessionInvalid             = newErr(KindInvalidState, "session is invalid")
+	ErrSessionInvalidRefreshToken = newErr(KindValidation, "invalid refresh token")
 )
 
+// ___ Device _________________________________________________________________
 var (
-	ErrInvalidDeviceHash    = errors.New("invalid device hash")
-	ErrInvalidDeviceName    = errors.New("invalid device name")
-	ErrInvalidDeviceVersion = errors.New("invalid device version")
-	ErrInvalidPlatform      = errors.New("invalid platform")
+	ErrDeviceInvalidHash     = newErr(KindValidation, "invalid device hash")
+	ErrDeviceInvalidName     = newErr(KindValidation, "invalid device name")
+	ErrDeviceInvalidVersion  = newErr(KindValidation, "invalid device version")
+	ErrDeviceInvalidPlatform = newErr(KindValidation, "invalid device platform")
+)
+
+// ___ OTP _________________________________________________________________
+var (
+	ErrOTPInvalid = newErr(KindValidation, "invalid otp code")
+	ErrOTPExpired = newErr(KindInvalidState, "otp expired")
 )

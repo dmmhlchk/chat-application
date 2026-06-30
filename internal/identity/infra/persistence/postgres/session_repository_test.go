@@ -346,7 +346,7 @@ func TestSessionRepository_TerminateAllByUserID(t *testing.T) {
 
 		err := repo.TerminateAllByUserID(context.Background(), uuid.New().String())
 
-		assert.ErrorIs(t, err, domain.ErrAlreadyCleanSessions)
+		assert.ErrorIs(t, err, domain.ErrSessionAlreadyClean)
 	})
 
 	t.Run("db error", func(t *testing.T) {
