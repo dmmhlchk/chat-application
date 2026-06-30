@@ -13,6 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// ___ Helpers _________________________________________________________________
 func newTestRepo(t *testing.T) (repository.OTPCacheRepository, *miniredis.Miniredis) {
 	t.Helper()
 
@@ -26,10 +27,7 @@ func newTestRepo(t *testing.T) (repository.OTPCacheRepository, *miniredis.Minire
 	return repo, mr
 }
 
-// ---------------------------------------------------------------------------
-// --	Save
-// ---------------------------------------------------------------------------
-
+// ___ Tests _________________________________________________________________
 func TestSave_StoresKeyWithTTL(t *testing.T) {
 	repo, mr := newTestRepo(t)
 	ctx := context.Background()
@@ -76,10 +74,6 @@ func TestSave_OverwritesExistingCode(t *testing.T) {
 		t.Errorf("expected overwritten value %q, got %q", "999999", val)
 	}
 }
-
-// ---------------------------------------------------------------------------
-// --	Verify
-// ---------------------------------------------------------------------------
 
 func TestVerify_ReturnsTrueForCorrectCode(t *testing.T) {
 	repo, _ := newTestRepo(t)
@@ -143,10 +137,6 @@ func TestVerify_ReturnsFalseAndErrOTPExpiredAfterTTLElapses(t *testing.T) {
 	}
 }
 
-// ---------------------------------------------------------------------------
-// --	Delete
-// ---------------------------------------------------------------------------
-
 func TestDelete_RemovesKey(t *testing.T) {
 	repo, mr := newTestRepo(t)
 	ctx := context.Background()
@@ -172,10 +162,6 @@ func TestDelete_IsIdempotentForMissingKey(t *testing.T) {
 		t.Errorf("Delete() on missing key returned error: %v", err)
 	}
 }
-
-// ---------------------------------------------------------------------------
-// --	Key isolation — different phones must not share keys
-// ---------------------------------------------------------------------------
 
 func TestKeyIsolation_DifferentPhonesAreIndependent(t *testing.T) {
 	repo, _ := newTestRepo(t)

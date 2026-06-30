@@ -17,10 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// ------------------------------------------------------------------------------------------------
-// --	Helpers
-// ------------------------------------------------------------------------------------------------
-
+// ___ Helpers _________________________________________________________________
 func newSessionRepoMock(t *testing.T) (*postgres.SessionRepository, sqlmock.Sqlmock) {
 	t.Helper()
 
@@ -79,10 +76,7 @@ func newTestSession(userID string) *domain.Session {
 	}
 }
 
-// ------------------------------------------------------------------------------------------------
-// --	FindAllByUserID
-// ------------------------------------------------------------------------------------------------
-
+// ___ Tests _________________________________________________________________
 func TestSessionRepository_FindAllByUserID(t *testing.T) {
 	t.Run("returns multiple sessions", func(t *testing.T) {
 		repo, mock := newSessionRepoMock(t)
@@ -152,10 +146,6 @@ func TestSessionRepository_FindAllByUserID(t *testing.T) {
 	})
 }
 
-// ------------------------------------------------------------------------------------------------
-// --	FindBySessionID
-// ------------------------------------------------------------------------------------------------
-
 func TestSessionRepository_FindBySessionID(t *testing.T) {
 	t.Run("found", func(t *testing.T) {
 		repo, mock := newSessionRepoMock(t)
@@ -205,10 +195,6 @@ func TestSessionRepository_FindBySessionID(t *testing.T) {
 	})
 }
 
-// ------------------------------------------------------------------------------------------------
-// --	Create
-// ------------------------------------------------------------------------------------------------
-
 func TestSessionRepository_Create(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo, mock := newSessionRepoMock(t)
@@ -252,10 +238,6 @@ func TestSessionRepository_Create(t *testing.T) {
 		assert.ErrorIs(t, err, dbErr)
 	})
 }
-
-// ------------------------------------------------------------------------------------------------
-// --	Update
-// ------------------------------------------------------------------------------------------------
 
 func TestSessionRepository_Update(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
@@ -319,10 +301,6 @@ func TestSessionRepository_Update(t *testing.T) {
 	})
 }
 
-// ------------------------------------------------------------------------------------------------
-// --	TerminateAllByUserID
-// ------------------------------------------------------------------------------------------------
-
 func TestSessionRepository_TerminateAllByUserID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo, mock := newSessionRepoMock(t)
@@ -362,10 +340,6 @@ func TestSessionRepository_TerminateAllByUserID(t *testing.T) {
 		assert.ErrorIs(t, err, dbErr)
 	})
 }
-
-// ------------------------------------------------------------------------------------------------
-// --	TerminateBySessionID
-// ------------------------------------------------------------------------------------------------
 
 func TestSessionRepository_TerminateBySessionID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
