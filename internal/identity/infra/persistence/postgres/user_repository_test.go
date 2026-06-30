@@ -16,10 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// ------------------------------------------------------------------------------------------------
-// --	Helpers
-// ------------------------------------------------------------------------------------------------
-
+// ___ Helpers _________________________________________________________________
 func newUserRepoMock(t *testing.T) (*postgres.UserRepository, sqlmock.Sqlmock) {
 	t.Helper()
 
@@ -51,10 +48,7 @@ func newTestUser() *domain.User {
 	}
 }
 
-// ------------------------------------------------------------------------------------------------
-// --	FindByUserID
-// ------------------------------------------------------------------------------------------------
-
+// ___ Tests _________________________________________________________________
 func TestUserRepository_FindByUserID(t *testing.T) {
 	t.Run("found", func(t *testing.T) {
 		repo, mock := newUserRepoMock(t)
@@ -104,10 +98,6 @@ func TestUserRepository_FindByUserID(t *testing.T) {
 	})
 }
 
-// ------------------------------------------------------------------------------------------------
-// --	FindByPhone
-// ------------------------------------------------------------------------------------------------
-
 func TestUserRepository_FindByPhone(t *testing.T) {
 	t.Run("found", func(t *testing.T) {
 		repo, mock := newUserRepoMock(t)
@@ -153,10 +143,6 @@ func TestUserRepository_FindByPhone(t *testing.T) {
 		assert.ErrorIs(t, err, dbErr)
 	})
 }
-
-// ------------------------------------------------------------------------------------------------
-// --	FindByUsername
-// ------------------------------------------------------------------------------------------------
 
 func TestUserRepository_FindByUsername(t *testing.T) {
 	t.Run("found", func(t *testing.T) {
@@ -204,10 +190,6 @@ func TestUserRepository_FindByUsername(t *testing.T) {
 	})
 }
 
-// ------------------------------------------------------------------------------------------------
-// --	ExistsByPhoneOrUsername
-// ------------------------------------------------------------------------------------------------
-
 func TestUserRepository_ExistsByPhoneOrUsername(t *testing.T) {
 	t.Run("exists", func(t *testing.T) {
 		repo, mock := newUserRepoMock(t)
@@ -250,10 +232,6 @@ func TestUserRepository_ExistsByPhoneOrUsername(t *testing.T) {
 	})
 }
 
-// ------------------------------------------------------------------------------------------------
-// --	Create
-// ------------------------------------------------------------------------------------------------
-
 func TestUserRepository_Create(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo, mock := newUserRepoMock(t)
@@ -281,10 +259,6 @@ func TestUserRepository_Create(t *testing.T) {
 		assert.ErrorIs(t, err, dbErr)
 	})
 }
-
-// ------------------------------------------------------------------------------------------------
-// --	Update
-// ------------------------------------------------------------------------------------------------
 
 func TestUserRepository_Update(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
@@ -325,10 +299,6 @@ func TestUserRepository_Update(t *testing.T) {
 		assert.ErrorIs(t, err, dbErr)
 	})
 }
-
-// ------------------------------------------------------------------------------------------------
-// --	Delete
-// ------------------------------------------------------------------------------------------------
 
 func TestUserRepository_Delete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {

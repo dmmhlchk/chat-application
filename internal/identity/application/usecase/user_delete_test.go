@@ -12,7 +12,6 @@ import (
 )
 
 // ___ Tests _________________________________________________________________
-
 func TestUserDelete_Success(t *testing.T) {
 	ctx := context.Background()
 
@@ -20,9 +19,15 @@ func TestUserDelete_Success(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	user := fakeUser()
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(user, nil)
-	hasher.On("Compare", user.PasswordHash, "S3cur3P@ss!").Return(true, nil)
-	userRepo.On("Delete", ctx, "user-uuid-001").Return(nil)
+
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(user, nil)
+
+	hasher.On("Compare", user.PasswordHash, "S3cur3P@ss!").
+		Return(true, nil)
+
+	userRepo.On("Delete", ctx, "user-uuid-001").
+		Return(nil)
 
 	uc := usecase.NewUserDelete(userRepo, hasher)
 	err := uc.Execute(ctx, usecase.UserDeleteInput{
@@ -41,7 +46,8 @@ func TestUserDelete_UserNotFound(t *testing.T) {
 	userRepo := &mockUserRepository{}
 	hasher := &mockPasswordHasher{}
 
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(nil, nil)
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(nil, nil)
 
 	uc := usecase.NewUserDelete(userRepo, hasher)
 	err := uc.Execute(ctx, usecase.UserDeleteInput{
@@ -60,7 +66,8 @@ func TestUserDelete_FindByUserIDError(t *testing.T) {
 	userRepo := &mockUserRepository{}
 	hasher := &mockPasswordHasher{}
 
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(nil, errors.New("db error"))
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(nil, errors.New("db error"))
 
 	uc := usecase.NewUserDelete(userRepo, hasher)
 	err := uc.Execute(ctx, usecase.UserDeleteInput{
@@ -79,8 +86,12 @@ func TestUserDelete_WrongPassword(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	user := fakeUser()
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(user, nil)
-	hasher.On("Compare", user.PasswordHash, "wrongpassword").Return(false, nil)
+
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(user, nil)
+
+	hasher.On("Compare", user.PasswordHash, "wrongpassword").
+		Return(false, nil)
 
 	uc := usecase.NewUserDelete(userRepo, hasher)
 	err := uc.Execute(ctx, usecase.UserDeleteInput{
@@ -99,8 +110,12 @@ func TestUserDelete_ComparePasswordError(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	user := fakeUser()
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(user, nil)
-	hasher.On("Compare", user.PasswordHash, "S3cur3P@ss!").Return(false, errors.New("bcrypt error"))
+
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(user, nil)
+
+	hasher.On("Compare", user.PasswordHash, "S3cur3P@ss!").
+		Return(false, errors.New("bcrypt error"))
 
 	uc := usecase.NewUserDelete(userRepo, hasher)
 	err := uc.Execute(ctx, usecase.UserDeleteInput{
@@ -119,9 +134,15 @@ func TestUserDelete_DeleteError(t *testing.T) {
 	hasher := &mockPasswordHasher{}
 
 	user := fakeUser()
-	userRepo.On("FindByUserID", ctx, "user-uuid-001").Return(user, nil)
-	hasher.On("Compare", user.PasswordHash, "S3cur3P@ss!").Return(true, nil)
-	userRepo.On("Delete", ctx, "user-uuid-001").Return(errors.New("db write error"))
+
+	userRepo.On("FindByUserID", ctx, "user-uuid-001").
+		Return(user, nil)
+
+	hasher.On("Compare", user.PasswordHash, "S3cur3P@ss!").
+		Return(true, nil)
+
+	userRepo.On("Delete", ctx, "user-uuid-001").
+		Return(errors.New("db write error"))
 
 	uc := usecase.NewUserDelete(userRepo, hasher)
 	err := uc.Execute(ctx, usecase.UserDeleteInput{

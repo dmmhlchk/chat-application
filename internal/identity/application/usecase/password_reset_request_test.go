@@ -14,7 +14,6 @@ import (
 )
 
 // ___ Tests _________________________________________________________________
-
 func TestPasswordResetRequest_Success(t *testing.T) {
 	ctx := context.Background()
 
@@ -24,13 +23,21 @@ func TestPasswordResetRequest_Success(t *testing.T) {
 	otpRepo := &mockOTPCacheRepository{}
 
 	user := fakeUser()
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(user, nil)
-	otpGen.On("Generate", 6).Return("654321", nil)
-	otpRepo.On("Save", ctx, "+996700000000", "654321", 1*time.Minute).Return(nil)
+
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(user, nil)
+
+	otpGen.On("Generate", 6).
+		Return("654321", nil)
+
+	otpRepo.On("Save", ctx, "+996700000000", "654321", 1*time.Minute).
+		Return(nil)
+
 	publisher.On("PublishOTPCreated", ctx, domain.OTPCreated{
 		Phone: "+996700000000",
 		Code:  "654321",
-	}).Return(nil)
+	}).
+		Return(nil)
 
 	uc := usecase.NewPasswordResetRequest(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.PasswordResetRequestInput{Phone: "+996700000000"})
@@ -51,7 +58,8 @@ func TestPasswordResetRequest_PhoneNotRegistered(t *testing.T) {
 	otpRepo := &mockOTPCacheRepository{}
 
 	// Unlike SignUpRequest, reset requires the user to exist
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(nil, nil)
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(nil, nil)
 
 	uc := usecase.NewPasswordResetRequest(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.PasswordResetRequestInput{Phone: "+996700000000"})
@@ -70,7 +78,8 @@ func TestPasswordResetRequest_FindByPhoneError(t *testing.T) {
 	otpGen := &mockOTPGenerator{}
 	otpRepo := &mockOTPCacheRepository{}
 
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(nil, errors.New("db error"))
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(nil, errors.New("db error"))
 
 	uc := usecase.NewPasswordResetRequest(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.PasswordResetRequestInput{Phone: "+996700000000"})
@@ -87,8 +96,12 @@ func TestPasswordResetRequest_OTPGenerationError(t *testing.T) {
 	otpRepo := &mockOTPCacheRepository{}
 
 	user := fakeUser()
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(user, nil)
-	otpGen.On("Generate", 6).Return("", errors.New("entropy exhausted"))
+
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(user, nil)
+
+	otpGen.On("Generate", 6).
+		Return("", errors.New("entropy exhausted"))
 
 	uc := usecase.NewPasswordResetRequest(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.PasswordResetRequestInput{Phone: "+996700000000"})
@@ -106,9 +119,15 @@ func TestPasswordResetRequest_OTPSaveError(t *testing.T) {
 	otpRepo := &mockOTPCacheRepository{}
 
 	user := fakeUser()
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(user, nil)
-	otpGen.On("Generate", 6).Return("654321", nil)
-	otpRepo.On("Save", ctx, "+996700000000", "654321", 1*time.Minute).Return(errors.New("redis down"))
+
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(user, nil)
+
+	otpGen.On("Generate", 6).
+		Return("654321", nil)
+
+	otpRepo.On("Save", ctx, "+996700000000", "654321", 1*time.Minute).
+		Return(errors.New("redis down"))
 
 	uc := usecase.NewPasswordResetRequest(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.PasswordResetRequestInput{Phone: "+996700000000"})
@@ -126,13 +145,21 @@ func TestPasswordResetRequest_PublishEventError(t *testing.T) {
 	otpRepo := &mockOTPCacheRepository{}
 
 	user := fakeUser()
-	userReader.On("FindByPhone", ctx, "+996700000000").Return(user, nil)
-	otpGen.On("Generate", 6).Return("654321", nil)
-	otpRepo.On("Save", ctx, "+996700000000", "654321", 1*time.Minute).Return(nil)
+
+	userReader.On("FindByPhone", ctx, "+996700000000").
+		Return(user, nil)
+
+	otpGen.On("Generate", 6).
+		Return("654321", nil)
+
+	otpRepo.On("Save", ctx, "+996700000000", "654321", 1*time.Minute).
+		Return(nil)
+
 	publisher.On("PublishOTPCreated", ctx, domain.OTPCreated{
 		Phone: "+996700000000",
 		Code:  "654321",
-	}).Return(errors.New("broker unavailable"))
+	}).
+		Return(errors.New("broker unavailable"))
 
 	uc := usecase.NewPasswordResetRequest(userReader, publisher, otpGen, otpRepo)
 	err := uc.Execute(ctx, usecase.PasswordResetRequestInput{Phone: "+996700000000"})

@@ -13,7 +13,6 @@ import (
 )
 
 // ___ Tests _________________________________________________________________
-
 func TestTerminateSession_Success(t *testing.T) {
 	ctx := context.Background()
 
@@ -22,9 +21,14 @@ func TestTerminateSession_Success(t *testing.T) {
 
 	session := &domain.Session{ID: "sess-001"}
 
-	tokenGen.On("Validate", "valid-refresh-token").Return("user-001", "sess-001", nil)
-	sessionRepo.On("FindBySessionID", ctx, "sess-001").Return(session, nil)
-	sessionRepo.On("TerminateBySessionID", ctx, "sess-001").Return(nil)
+	tokenGen.On("Validate", "valid-refresh-token").
+		Return("user-001", "sess-001", nil)
+
+	sessionRepo.On("FindBySessionID", ctx, "sess-001").
+		Return(session, nil)
+
+	sessionRepo.On("TerminateBySessionID", ctx, "sess-001").
+		Return(nil)
 
 	uc := usecase.NewTerminateSession(sessionRepo, tokenGen)
 	err := uc.Execute(ctx, usecase.TerminateSessionInput{
@@ -76,7 +80,8 @@ func TestTerminateSession_InvalidToken(t *testing.T) {
 	sessionRepo := &mockSessionRepository{}
 	tokenGen := &mockTokenGenerator{}
 
-	tokenGen.On("Validate", "bad-token").Return("", "", errors.New("token expired"))
+	tokenGen.On("Validate", "bad-token").
+		Return("", "", errors.New("token expired"))
 
 	uc := usecase.NewTerminateSession(sessionRepo, tokenGen)
 	err := uc.Execute(ctx, usecase.TerminateSessionInput{
@@ -95,7 +100,8 @@ func TestTerminateSession_TokenBelongsToDifferentUser(t *testing.T) {
 	tokenGen := &mockTokenGenerator{}
 
 	// Token's embedded userID does not match input.UserID
-	tokenGen.On("Validate", "other-users-token").Return("user-999", "sess-001", nil)
+	tokenGen.On("Validate", "other-users-token").
+		Return("user-999", "sess-001", nil)
 
 	uc := usecase.NewTerminateSession(sessionRepo, tokenGen)
 	err := uc.Execute(ctx, usecase.TerminateSessionInput{
@@ -113,8 +119,11 @@ func TestTerminateSession_SessionNotFound(t *testing.T) {
 	sessionRepo := &mockSessionRepository{}
 	tokenGen := &mockTokenGenerator{}
 
-	tokenGen.On("Validate", "valid-refresh-token").Return("user-001", "sess-001", nil)
-	sessionRepo.On("FindBySessionID", ctx, "sess-001").Return(nil, nil)
+	tokenGen.On("Validate", "valid-refresh-token").
+		Return("user-001", "sess-001", nil)
+
+	sessionRepo.On("FindBySessionID", ctx, "sess-001").
+		Return(nil, nil)
 
 	uc := usecase.NewTerminateSession(sessionRepo, tokenGen)
 	err := uc.Execute(ctx, usecase.TerminateSessionInput{
@@ -132,8 +141,11 @@ func TestTerminateSession_FindBySessionIDError(t *testing.T) {
 	sessionRepo := &mockSessionRepository{}
 	tokenGen := &mockTokenGenerator{}
 
-	tokenGen.On("Validate", "valid-refresh-token").Return("user-001", "sess-001", nil)
-	sessionRepo.On("FindBySessionID", ctx, "sess-001").Return(nil, errors.New("db error"))
+	tokenGen.On("Validate", "valid-refresh-token").
+		Return("user-001", "sess-001", nil)
+
+	sessionRepo.On("FindBySessionID", ctx, "sess-001").
+		Return(nil, errors.New("db error"))
 
 	uc := usecase.NewTerminateSession(sessionRepo, tokenGen)
 	err := uc.Execute(ctx, usecase.TerminateSessionInput{
@@ -153,9 +165,14 @@ func TestTerminateSession_TerminateError(t *testing.T) {
 
 	session := &domain.Session{ID: "sess-001"}
 
-	tokenGen.On("Validate", "valid-refresh-token").Return("user-001", "sess-001", nil)
-	sessionRepo.On("FindBySessionID", ctx, "sess-001").Return(session, nil)
-	sessionRepo.On("TerminateBySessionID", ctx, "sess-001").Return(errors.New("db write error"))
+	tokenGen.On("Validate", "valid-refresh-token").
+		Return("user-001", "sess-001", nil)
+
+	sessionRepo.On("FindBySessionID", ctx, "sess-001").
+		Return(session, nil)
+
+	sessionRepo.On("TerminateBySessionID", ctx, "sess-001").
+		Return(errors.New("db write error"))
 
 	uc := usecase.NewTerminateSession(sessionRepo, tokenGen)
 	err := uc.Execute(ctx, usecase.TerminateSessionInput{
