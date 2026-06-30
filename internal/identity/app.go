@@ -67,7 +67,8 @@ func NewContainer() *Container {
 	// 4. INFRASTRUCTURE: IDENTIFIER & SECURITY INITIALIZATION
 	uuidGen := identifier.NewUUIDGenerator()
 	jwtGen := token.NewJWTGenerator(jwtSecret)
-	otpGen := otp.NewSecureOTPGenerator()
+	// otpGen := otp.NewSecureOTPGenerator()
+	otpGen := otp.NewDummyOTPGenerator()
 	passwordHasher := password.NewBcryptPasswordHasher()
 
 	// 5. APPLICATION: USE CASE INITIALIZATION
