@@ -9,17 +9,30 @@ type Chat struct {
 	Title     string
 }
 
+type ChatOption func(*Chat)
+
+func WithTitle(title string) ChatOption {
+	return func(c *Chat) {
+		c.Title = title
+	}
+}
+
 func NewChat(
 	chatID string,
 	chatType ChatType,
-	title string,
+	chatOpts ...ChatOption,
 ) *Chat {
 	now := time.Now().UTC()
 
-	return &Chat{
+	c := &Chat{
 		ID:        chatID,
 		Type:      chatType,
 		CreatedAt: now,
-		Title:     title,
 	}
+
+	for _, opt := range chatOpts {
+		opt(c)
+	}
+
+	return c
 }
