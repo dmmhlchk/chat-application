@@ -15,5 +15,6 @@ func (p Platform) IsValid() bool {
 	case PlatformWeb, PlatformWindows, PlatformMacOS, PlatformAndroid, PlatformIOS:
 		return true
 	}
+
 	return false
 }
