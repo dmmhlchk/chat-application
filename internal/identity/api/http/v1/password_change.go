@@ -24,33 +24,22 @@ func NewChangePassword(changePassword *usecase.ChangePassword) *ChangePassword {
 	return &ChangePassword{changePassword: changePassword}
 }
 
-// 3. helpers
-func (h *ChangePassword) respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	_ = json.NewEncoder(w).Encode(payload)
-}
-
-func (h *ChangePassword) respondWithError(w http.ResponseWriter, statusCode int, message string) {
-	h.respondWithJSON(w, statusCode, api.ErrorResponse{Error: message})
-}
-
 // 4. Handle password change use case
 func (h *ChangePassword) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		h.respondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
+		api.RespondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
-		h.respondWithError(w, http.StatusBadRequest, "missing user_id query parameter")
+		api.RespondWithError(w, http.StatusBadRequest, "missing user_id query parameter")
 		return
 	}
 
 	var req changePasswordRequestPayload
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.respondWithError(w, http.StatusBadRequest, "invalid JSON payload")
+		api.RespondWithError(w, http.StatusBadRequest, "invalid JSON payload")
 		return
 	}
 
@@ -61,11 +50,11 @@ func (h *ChangePassword) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.changePassword.Execute(r.Context(), input); err != nil {
-		h.respondWithError(w, http.StatusBadRequest, err.Error())
+		api.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	h.respondWithJSON(w, http.StatusOK, api.MessageResponse{
+	api.RespondWithJSON(w, http.StatusOK, api.MessageResponse{
 		Message: "password changed successfully",
 	})
 }

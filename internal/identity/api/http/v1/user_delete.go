@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"chat-app/internal/identity/application/usecase"
+	"chat-app/internal/shared/api"
 
 	"mime"
 )
@@ -24,27 +25,16 @@ func NewUserDeletion(userDeletion *usecase.UserDelete) *UserDeletion {
 	return &UserDeletion{userDeletion: userDeletion}
 }
 
-// 3. helpers
-func (h *UserDeletion) respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	_ = json.NewEncoder(w).Encode(payload)
-}
-
-func (h *UserDeletion) respondWithError(w http.ResponseWriter, statusCode int, message string) {
-	h.respondWithJSON(w, statusCode, errorResponse{Error: message})
-}
-
-// 4. Handle user deletion use case
+// 3. Handle user deletion use case
 func (h *UserDeletion) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		h.respondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
+		api.RespondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
 	mediatype, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil || mediatype != "application/json" {
-		h.respondWithError(
+		api.RespondWithError(
 			w,
 			http.StatusUnsupportedMediaType,
 			"unsupported media type: request body must be application/json",
@@ -54,7 +44,7 @@ func (h *UserDeletion) Handle(w http.ResponseWriter, r *http.Request) {
 
 	var req userDeleteRequestPayload
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.respondWithError(w, http.StatusBadRequest, "invalid json payload")
+		api.RespondWithError(w, http.StatusBadRequest, "invalid json payload")
 		return
 	}
 
@@ -65,11 +55,11 @@ func (h *UserDeletion) Handle(w http.ResponseWriter, r *http.Request) {
 
 	err = h.userDeletion.Execute(r.Context(), input)
 	if err != nil {
-		h.respondWithError(w, http.StatusBadRequest, err.Error())
+		api.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	h.respondWithJSON(w, http.StatusOK, messageResponse{
+	api.RespondWithJSON(w, http.StatusOK, api.MessageResponse{
 		Message: "user has been removed",
 	})
 }
