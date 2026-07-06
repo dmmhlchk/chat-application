@@ -7,6 +7,7 @@ import (
 
 	"chat-app/internal/identity/application/repository"
 	"chat-app/internal/identity/application/security"
+	"chat-app/internal/identity/domain"
 )
 
 // 1. Determine the input
@@ -48,7 +49,7 @@ func (uc *ChangePassword) Execute(ctx context.Context, input ChangePasswordInput
 		return fmt.Errorf("failed to find a user: %w", err)
 	}
 	if user == nil {
-		return errors.New("user has not been found")
+		return domain.ErrUserNotFound
 	}
 
 	// 3. Compare passwords + Prevent the user from reusing their exact same password

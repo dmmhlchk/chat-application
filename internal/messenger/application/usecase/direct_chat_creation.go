@@ -22,17 +22,20 @@ type DirectCreationOutput struct {
 
 // 2. Determine the dependencies
 type DirectCreation struct {
-	idGen    generator.IDGenerator
-	chatRepo repository.ChatRepository
+	idGen           generator.IDGenerator
+	participantRepo repository.ParticipantRepository
+	chatRepo        repository.ChatRepository
 }
 
 func NewDirectCreation(
 	idGen generator.IDGenerator,
+	participantRepo repository.ParticipantRepository,
 	chatRepo repository.ChatRepository,
 ) *DirectCreation {
 	return &DirectCreation{
-		idGen:    idGen,
-		chatRepo: chatRepo,
+		idGen:           idGen,
+		participantRepo: participantRepo,
+		chatRepo:        chatRepo,
 	}
 }
 
@@ -57,6 +60,13 @@ func (uc *DirectCreation) Execute(ctx context.Context, input DirectCreationInput
 	err = uc.chatRepo.Create(ctx, chat)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create chat: %w", err)
+	}
+
+	// 3. Join all members
+	err = uc.participantRepo.Join(ctx, chatID, userIDs...)
+	if err != nil {
+		_ = uc.chatRepo.Delete(ctx, chatID)
+		return nil, fmt.Errorf("failed to join members: %w", err)
 	}
 
 	return &DirectCreationOutput{ChatID: chatID}, nil

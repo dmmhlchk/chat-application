@@ -37,3 +37,8 @@ func IsKind(err error, kind Kind) bool {
 var (
 	ErrChatNotFound = newErr(KindNotFound, "chat not found")
 )
+
+// ___ Participant __________________________________________________________
+var (
+	ErrHasNoRight = newErr(KindNotFound, "user has no right")
+)

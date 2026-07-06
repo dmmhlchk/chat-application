@@ -11,26 +11,26 @@ import (
 )
 
 // 1. Determine presentation input and output
-type directChatCreationRequest struct {
+type directCreationRequest struct {
 	UserID1 string
 	UserID2 string
 }
 
-type directChatCreationResponse struct {
+type directCreationResponse struct {
 	ChatID string `json:"chat_id"`
 }
 
 // 2. Inject dependencies
-type DirectChatCreation struct {
+type DirectCreation struct {
 	directChatCreation *usecase.DirectCreation
 }
 
-func NewDirectChatCreation(uc *usecase.DirectCreation) *DirectChatCreation {
-	return &DirectChatCreation{directChatCreation: uc}
+func NewDirectCreation(uc *usecase.DirectCreation) *DirectCreation {
+	return &DirectCreation{directChatCreation: uc}
 }
 
 // 3. Handle direct chat creation use case
-func (h *DirectChatCreation) Handle(w http.ResponseWriter, r *http.Request) {
+func (h *DirectCreation) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		api.RespondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -46,7 +46,7 @@ func (h *DirectChatCreation) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req directChatCreationRequest
+	var req directCreationRequest
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		api.RespondWithError(w, http.StatusBadRequest, "invalid json payload")
 		return
@@ -63,7 +63,7 @@ func (h *DirectChatCreation) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api.RespondWithJSON(w, http.StatusOK, directChatCreationResponse{
+	api.RespondWithJSON(w, http.StatusOK, directCreationResponse{
 		ChatID: output.ChatID,
 	})
 }
