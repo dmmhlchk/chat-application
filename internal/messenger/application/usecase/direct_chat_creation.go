@@ -11,61 +11,46 @@ import (
 )
 
 // 1. Determine the input and the output
-type DirectChatCreationInput struct {
-	FirstUserID  string
-	SecondUserID string
+type DirectCreationInput struct {
+	UserID1 string
+	UserID2 string
 }
 
-type DirectChatCreationOutput struct {
+type DirectCreationOutput struct {
 	ChatID string
 }
 
 // 2. Determine the dependencies
-type DirectChatCreation struct {
-	idGen           generator.IDGenerator
-	userRepo        repository.UserRepository
-	participantRepo repository.ParticipantRepository
-	chatRepo        repository.ChatRepository
+type DirectCreation struct {
+	idGen    generator.IDGenerator
+	chatRepo repository.ChatRepository
 }
 
-func NewDirectChatCreation(
+func NewDirectCreation(
 	idGen generator.IDGenerator,
-	userRepo repository.UserRepository,
-	participantRepo repository.ParticipantRepository,
 	chatRepo repository.ChatRepository,
-) *DirectChatCreation {
-	return &DirectChatCreation{
-		idGen:           idGen,
-		userRepo:        userRepo,
-		participantRepo: participantRepo,
-		chatRepo:        chatRepo,
+) *DirectCreation {
+	return &DirectCreation{
+		idGen:    idGen,
+		chatRepo: chatRepo,
 	}
 }
 
-// 3. Business flow of chat creation
-func (uc *DirectChatCreation) Execute(ctx context.Context, input DirectChatCreationInput) (*DirectChatCreationOutput, error) {
+// 3. Business flow of direct chat creation
+func (uc *DirectCreation) Execute(ctx context.Context, input DirectCreationInput) (*DirectCreationOutput, error) {
 
-	userIDs := []string{input.FirstUserID, input.SecondUserID}
+	userIDs := []string{input.UserID1, input.UserID2}
 
-	// 1. Check if users exist by their id
-	exists, err := uc.userRepo.ExistsByUserIDs(ctx, userIDs...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to verify users: %w", err)
-	}
-	if !exists {
-		return nil, errors.New("failed to create a direct chat: one of the users was not found")
-	}
-
-	// 2. Check if a chat has been already created between these users
-	exists, err = uc.chatRepo.ExistsDirectChat(ctx, userIDs...)
+	// 1. Check if a chat has been already created between these users
+	exists, err := uc.chatRepo.ExistsDirectBetween(ctx, userIDs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify chat: %w", err)
 	}
-	if !exists {
+	if exists {
 		return nil, errors.New("failed to create a direct chat: another one already created")
 	}
 
-	// 3. Create a direct chat
+	// 2. Create a direct chat
 	chatID := uc.idGen.Generate()
 
 	chat := domain.NewChat(chatID, "direct")
@@ -74,5 +59,5 @@ func (uc *DirectChatCreation) Execute(ctx context.Context, input DirectChatCreat
 		return nil, fmt.Errorf("failed to create chat: %w", err)
 	}
 
-	return &DirectChatCreationOutput{ChatID: chatID}, nil
+	return &DirectCreationOutput{ChatID: chatID}, nil
 }

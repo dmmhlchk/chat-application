@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"chat-app/internal/identity/application/usecase"
+	"chat-app/internal/shared/api"
 )
 
 // 1. Determine presentation inputs
@@ -31,7 +32,7 @@ func (h *ChangePassword) respondWithJSON(w http.ResponseWriter, statusCode int, 
 }
 
 func (h *ChangePassword) respondWithError(w http.ResponseWriter, statusCode int, message string) {
-	h.respondWithJSON(w, statusCode, errorResponse{Error: message})
+	h.respondWithJSON(w, statusCode, api.ErrorResponse{Error: message})
 }
 
 // 4. Handle password change use case
@@ -64,7 +65,7 @@ func (h *ChangePassword) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.respondWithJSON(w, http.StatusOK, messageResponse{
+	h.respondWithJSON(w, http.StatusOK, api.MessageResponse{
 		Message: "password changed successfully",
 	})
 }
