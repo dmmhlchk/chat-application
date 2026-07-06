@@ -7,6 +7,7 @@ import (
 
 	"chat-app/internal/identity/application/usecase"
 	"chat-app/internal/identity/domain"
+	"chat-app/internal/shared/api"
 
 	"mime"
 )
@@ -37,17 +38,7 @@ func NewSignInHandler(signin *usecase.SignIn) *SignIn {
 	return &SignIn{signin: signin}
 }
 
-// 3. helpers
-func (h *SignIn) respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	_ = json.NewEncoder(w).Encode(payload)
-}
-
-func (h *SignIn) respondWithError(w http.ResponseWriter, statusCode int, message string) {
-	h.respondWithJSON(w, statusCode, errorResponse{Error: message})
-}
-
+// 3. Helper
 func (h *SignIn) extractIP(r *http.Request) string {
 	// Check if the app is behind a trusted proxy gateway first
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
@@ -68,13 +59,13 @@ func (h *SignIn) extractIP(r *http.Request) string {
 // 4. Handle sign in use case
 func (h *SignIn) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		h.respondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
+		api.RespondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
 	mediatype, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil || mediatype != "application/json" {
-		h.respondWithError(
+		api.RespondWithError(
 			w,
 			http.StatusUnsupportedMediaType,
 			"unsupported media type: request body must be application/json",
@@ -84,7 +75,7 @@ func (h *SignIn) Handle(w http.ResponseWriter, r *http.Request) {
 
 	var req signInRequestPayload
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.respondWithError(w, http.StatusBadRequest, "invalid json payload")
+		api.RespondWithError(w, http.StatusBadRequest, "invalid json payload")
 		return
 	}
 
@@ -107,11 +98,11 @@ func (h *SignIn) Handle(w http.ResponseWriter, r *http.Request) {
 
 	output, err := h.signin.Execute(r.Context(), input)
 	if err != nil {
-		h.respondWithError(w, http.StatusBadRequest, err.Error())
+		api.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	h.respondWithJSON(w, http.StatusOK, signInResponsePayload{
+	api.RespondWithJSON(w, http.StatusOK, signInResponsePayload{
 		UserID:       output.UserID,
 		AccessToken:  output.AccessToken,
 		RefreshToken: output.RefreshToken,

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"chat-app/internal/identity/application/usecase"
+	"chat-app/internal/shared/api"
 )
 
 // 1. Determine presentation inputs
@@ -23,26 +24,16 @@ func NewPasswordResetConfirm(confPasswordReset *usecase.PasswordResetConfirm) *P
 	return &PasswordResetConfirm{confPasswordReset: confPasswordReset}
 }
 
-// 3. helpers
-func (h *PasswordResetConfirm) respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	_ = json.NewEncoder(w).Encode(payload)
-}
-
-func (h *PasswordResetConfirm) respondWithError(w http.ResponseWriter, statusCode int, message string) {
-	h.respondWithJSON(w, statusCode, errorResponse{Error: message})
-}
-
+// 3. Handler password reset confirm use case
 func (h *PasswordResetConfirm) Handle(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		h.respondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
+		api.RespondWithError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
 	var req passwordResetConfirmPayload
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.respondWithError(w, http.StatusBadRequest, "invalid JSON payload")
+		api.RespondWithError(w, http.StatusBadRequest, "invalid JSON payload")
 		return
 	}
 
@@ -53,7 +44,7 @@ func (h *PasswordResetConfirm) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.confPasswordReset.Execute(r.Context(), input); err != nil {
-		h.respondWithError(w, http.StatusBadRequest, err.Error())
+		api.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -65,7 +56,7 @@ func (h *PasswordResetConfirm) Handle(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 
-	h.respondWithJSON(w, http.StatusOK, messageResponse{
+	api.RespondWithJSON(w, http.StatusOK, api.MessageResponse{
 		Message: "password updated successfully and all sessions revoked",
 	})
 }
