@@ -22,20 +22,17 @@ type GroupCreationOutput struct {
 
 // 2. Determine the dependencies
 type GroupCreation struct {
-	idGen           generator.IDGenerator
-	participantRepo repository.ParticipantRepository
-	chatRepo        repository.ChatRepository
+	idGen    generator.IDGenerator
+	chatRepo repository.ChatRepository
 }
 
 func NewGroupCreation(
 	idGen generator.IDGenerator,
-	participantRepo repository.ParticipantRepository,
 	chatRepo repository.ChatRepository,
 ) *GroupCreation {
 	return &GroupCreation{
-		idGen:           idGen,
-		participantRepo: participantRepo,
-		chatRepo:        chatRepo,
+		idGen:    idGen,
+		chatRepo: chatRepo,
 	}
 }
 
@@ -44,19 +41,19 @@ func (uc *GroupCreation) Execute(ctx context.Context, input GroupCreationInput) 
 	chatID := uc.idGen.Generate()
 	chat := domain.NewChat(chatID, "Group", domain.WithTitle(input.Title))
 
-	// 1. Create a Group chat
+	// Create a Group chat
 	if err := uc.chatRepo.Create(ctx, chat); err != nil {
 		return nil, fmt.Errorf("failed to create chat: %w", err)
 	}
 
-	// 2. Join all members
-	if err := uc.participantRepo.Join(ctx, chatID, input.UserIDs...); err != nil {
+	// Join all members
+	if err := uc.chatRepo.Join(ctx, chatID, input.UserIDs...); err != nil {
 		_ = uc.chatRepo.Delete(ctx, chatID)
 		return nil, fmt.Errorf("failed to join members: %w", err)
 	}
 
-	// 3. Set an Owner of the Group chat
-	if err := uc.participantRepo.SetOwner(ctx, chatID, input.OwnerID); err != nil {
+	// Set an Owner of the Group chat
+	if err := uc.chatRepo.SetOwner(ctx, chatID, input.OwnerID); err != nil {
 		_ = uc.chatRepo.Delete(ctx, chatID)
 		return nil, fmt.Errorf("failed to set owner: %w", err)
 	}

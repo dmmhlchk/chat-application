@@ -15,34 +15,26 @@ type DirectDeletionInput struct {
 
 // 2. Determine the dependincies
 type DirectDeletion struct {
-	userRepo repository.UserRepository
 	chatRepo repository.ChatRepository
 }
 
-func NewDirectDeletion(
-	userRepo repository.UserRepository,
-	chatRepo repository.ChatRepository,
-) *DirectDeletion {
-	return &DirectDeletion{
-		userRepo: userRepo,
-		chatRepo: chatRepo,
-	}
+func NewDirectDeletion(chatRepo repository.ChatRepository) *DirectDeletion {
+	return &DirectDeletion{chatRepo: chatRepo}
 }
 
 // 3. Business flow of direct chat deletion
 func (uc *DirectDeletion) Execute(ctx context.Context, input DirectDeletionInput) error {
-	// 1. Check if the chat belongs to the user who wants to delete it
-	exists, err := uc.chatRepo.IsMember(ctx, input.UserID, input.ChatID)
+	// Check if the chat belongs to the user who wants to delete it
+	isMember, err := uc.chatRepo.IsMember(ctx, input.UserID, input.ChatID)
 	if err != nil {
 		return fmt.Errorf("failed to verify chat: %w", err)
 	}
-	if !exists {
+	if !isMember {
 		return fmt.Errorf("this chat doesn't belong to this user")
 	}
 
-	// 2. Delete it
-	err = uc.chatRepo.Delete(ctx, input.ChatID)
-	if err != nil {
+	// Delete it
+	if err := uc.chatRepo.Delete(ctx, input.ChatID); err != nil {
 		return fmt.Errorf("failed to delete chat: %w", err)
 	}
 

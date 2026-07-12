@@ -15,16 +15,16 @@ type SessionListInput struct {
 	CurrentRefreshToken string
 }
 
-type SessionItem struct {
-	ID        string        `json:"id"`
-	Device    domain.Device `json:"device"`
-	IPAddress string        `json:"ip_address"`
-	IsCurrent bool          `json:"is_current"`
-	CreatedAt time.Time     `json:"created_at"`
+type SessionListOutput struct {
+	Sessions []Session
 }
 
-type SessionListOutput struct {
-	Sessions []SessionItem `json:"sessions"`
+type Session struct {
+	ID        string
+	Device    domain.Device
+	IPAddress string
+	IsCurrent bool
+	CreatedAt time.Time
 }
 
 // 2. Determine the dependencies
@@ -46,11 +46,11 @@ func (uc *SessionList) Execute(ctx context.Context, input SessionListInput) (*Se
 		return nil, fmt.Errorf("failed to retrieve active sessions: %w", err)
 	}
 
-	items := make([]SessionItem, 0, len(domainSessions))
+	items := make([]Session, 0, len(domainSessions))
 	for _, s := range domainSessions {
 		isCurrent := s.RefreshTokenHash == input.CurrentRefreshToken
 
-		items = append(items, SessionItem{
+		items = append(items, Session{
 			ID:        s.ID,
 			Device:    s.Device,
 			IPAddress: s.ActiveIPAddress,

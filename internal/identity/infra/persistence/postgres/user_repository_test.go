@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// ___ Helpers _________________________________________________________________
+// __ Helpers _________________________________________________________________
 func newUserRepoMock(t *testing.T) (*postgres.UserRepository, sqlmock.Sqlmock) {
 	t.Helper()
 
@@ -48,7 +48,7 @@ func newTestUser() *domain.User {
 	}
 }
 
-// ___ Tests _________________________________________________________________
+// __ Tests _________________________________________________________________
 func TestUserRepository_FindByUserID(t *testing.T) {
 	t.Run("found", func(t *testing.T) {
 		repo, mock := newUserRepoMock(t)

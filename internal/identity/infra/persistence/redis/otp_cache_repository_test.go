@@ -13,7 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// ___ Helpers _________________________________________________________________
+// __Helpers _________________________________________________________________
 func newTestRepo(t *testing.T) (repository.OTPCacheRepository, *miniredis.Miniredis) {
 	t.Helper()
 
@@ -27,7 +27,7 @@ func newTestRepo(t *testing.T) (repository.OTPCacheRepository, *miniredis.Minire
 	return repo, mr
 }
 
-// ___ Tests _________________________________________________________________
+// __Tests _________________________________________________________________
 func TestSave_StoresKeyWithTTL(t *testing.T) {
 	repo, mr := newTestRepo(t)
 	ctx := context.Background()

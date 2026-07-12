@@ -25,7 +25,7 @@ func NewGroupModification(chatRepo repository.ChatRepository) *GroupModification
 // 3. Business flow of user Adding a group chat
 func (uc *GroupModification) Execute(ctx context.Context, input GroupModificationInput) error {
 
-	// 1. Find a group chat by its ID
+	// Find a group chat by its ID
 	group, err := uc.chatRepo.FindByChatID(ctx, input.ChatID)
 	if err != nil {
 		return fmt.Errorf("failed to find a group by id: %w", err)
@@ -34,12 +34,10 @@ func (uc *GroupModification) Execute(ctx context.Context, input GroupModificatio
 		return domain.ErrChatNotFound
 	}
 
-	// 2. Re-build the group
+	// Change the group title
 	group.Title = input.Title
 
-	// 3. Change the group title
-	err = uc.chatRepo.Update(ctx, group)
-	if err != nil {
+	if err := uc.chatRepo.Update(ctx, group); err != nil {
 		return fmt.Errorf("failed to modify a group chat: %w", err)
 	}
 

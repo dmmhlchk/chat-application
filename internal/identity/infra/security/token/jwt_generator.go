@@ -63,7 +63,7 @@ func (g *JWTGenerator) Validate(tokenString string) (string, string, error) {
 
 	if err != nil {
 		// Automatically handles expired tokens, invalid formats, and corrupted signatures
-		return "", "", fmt.Errorf("token validation failed: %w", err)
+		return "", "", err
 	}
 
 	// Extract claims and verify the token status flag is fully valid

@@ -33,7 +33,11 @@ func IsKind(err error, kind Kind) bool {
 	return errors.As(err, &de) && de.Kind == kind
 }
 
-// ___ User _________________________________________________________________
+//
+//
+//
+//
+// __User _________________________________________________________________
 var (
 	ErrUserNotFound        = newErr(KindNotFound, "user not found")
 	ErrUserAlreadyExists   = newErr(KindConflict, "user already exists")
@@ -42,7 +46,11 @@ var (
 	ErrUserInvalidID       = newErr(KindValidation, "invalid user id")
 )
 
-// ___ Session _________________________________________________________________
+//
+//
+//
+//
+// __Session _________________________________________________________________
 var (
 	ErrSessionNotFound            = newErr(KindNotFound, "session not found")
 	ErrSessionAlreadyRevoked      = newErr(KindConflict, "session already revoked")
@@ -51,7 +59,11 @@ var (
 	ErrSessionInvalidRefreshToken = newErr(KindValidation, "invalid refresh token")
 )
 
-// ___ Device _________________________________________________________________
+//
+//
+//
+//
+// __Device _________________________________________________________________
 var (
 	ErrDeviceInvalidHash     = newErr(KindValidation, "invalid device hash")
 	ErrDeviceInvalidName     = newErr(KindValidation, "invalid device name")
@@ -59,7 +71,11 @@ var (
 	ErrDeviceInvalidPlatform = newErr(KindValidation, "invalid device platform")
 )
 
-// ___ OTP _________________________________________________________________
+//
+//
+//
+//
+// __OTP _________________________________________________________________
 var (
 	ErrOTPInvalid = newErr(KindValidation, "invalid otp code")
 	ErrOTPExpired = newErr(KindInvalidState, "otp expired")

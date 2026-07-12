@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// ___ Tests _________________________________________________________________
+// __Tests _________________________________________________________________
 func TestPasswordResetConfirm_Success(t *testing.T) {
 	ctx := context.Background()
 

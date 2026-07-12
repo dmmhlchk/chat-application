@@ -14,18 +14,17 @@ type GroupJoiningInput struct {
 
 // 2. Determine the dependencies
 type GroupJoining struct {
-	participantRepo repository.ParticipantRepository
+	chatRepo repository.ChatRepository
 }
 
-func NewGroupJoining(participantRepo repository.ParticipantRepository) *GroupJoining {
-	return &GroupJoining{participantRepo: participantRepo}
+func NewGroupJoining(chatRepo repository.ChatRepository) *GroupJoining {
+	return &GroupJoining{chatRepo: chatRepo}
 }
 
 // 3. Business flow of user joining a group chat
 func (uc *GroupJoining) Execute(ctx context.Context, input GroupJoiningInput) error {
-	// 1. Joining a group chat
-	err := uc.participantRepo.Join(ctx, input.ChatID, input.UserID)
-	if err != nil {
+	// Joining a group chat
+	if err := uc.chatRepo.Join(ctx, input.ChatID, input.UserID); err != nil {
 		return fmt.Errorf("failed to join a group chat: %w", err)
 	}
 

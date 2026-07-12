@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// ___ Tests _________________________________________________________________
+// __Tests _________________________________________________________________
 func TestSessionList_Success_MarksCurrentSession(t *testing.T) {
 	ctx := context.Background()
 	reader := &mockSessionReader{}

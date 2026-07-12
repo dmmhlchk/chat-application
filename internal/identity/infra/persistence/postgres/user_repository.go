@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"chat-app/internal/identity/application/repository"
 	"chat-app/internal/identity/domain"
@@ -20,10 +19,7 @@ func NewUserRepository(db *sql.DB) repository.UserRepository {
 	return &UserRepository{db: db}
 }
 
-// -------------------------------------------------------------------------------------------------
-// --		Read methods
-// -------------------------------------------------------------------------------------------------
-
+// __Read methods _________________________________________________________________
 func (r *UserRepository) FindByUserID(ctx context.Context, userID string) (*domain.User, error) {
 	query := `
 		select id, username, phone, password_hash 
@@ -37,7 +33,7 @@ func (r *UserRepository) FindByUserID(ctx context.Context, userID string) (*doma
 			return nil, domain.ErrUserNotFound
 		}
 
-		return nil, fmt.Errorf("postgres: find user by id failed - %w", err)
+		return nil, err
 	}
 
 	return &u, nil
@@ -56,7 +52,7 @@ func (r *UserRepository) FindByPhone(ctx context.Context, phone string) (*domain
 			return nil, domain.ErrUserNotFound
 		}
 
-		return nil, fmt.Errorf("postgres: find user by phone failed - %w", err)
+		return nil, err
 	}
 
 	return &u, nil
@@ -75,7 +71,7 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*
 			return nil, domain.ErrUserNotFound
 		}
 
-		return nil, fmt.Errorf("postgres: find user by username failed - %w", err)
+		return nil, err
 	}
 
 	return &u, nil
@@ -87,16 +83,13 @@ func (r *UserRepository) ExistsByPhoneOrUsername(ctx context.Context, phone stri
 	var exists bool
 	err := r.db.QueryRowContext(ctx, query, username, phone).Scan(&exists)
 	if err != nil {
-		return false, fmt.Errorf("postgres: check user existence failed - %w", err)
+		return false, err
 	}
 
 	return exists, nil
 }
 
-// -------------------------------------------------------------------------------------------------
-// --		Write methods
-// -------------------------------------------------------------------------------------------------
-
+// __ Write methods _________________________________________________________________
 func (r *UserRepository) Create(ctx context.Context, u *domain.User) error {
 	query := `
 		insert into users (id, username, phone, password_hash) 
@@ -104,7 +97,7 @@ func (r *UserRepository) Create(ctx context.Context, u *domain.User) error {
 
 	_, err := r.db.ExecContext(ctx, query, u.ID, u.Username, u.Phone, u.PasswordHash)
 	if err != nil {
-		return fmt.Errorf("postgres: user insertion failed - %w", err)
+		return err
 	}
 
 	return nil
@@ -122,7 +115,7 @@ func (r *UserRepository) Update(ctx context.Context, u *domain.User) error {
 
 	result, err := r.db.ExecContext(ctx, query, u.ID, u.Username, u.Phone, u.PasswordHash)
 	if err != nil {
-		return fmt.Errorf("postgres: user modification failed - %w", err)
+		return err
 	}
 
 	rows, _ := result.RowsAffected()
@@ -140,7 +133,7 @@ func (r *UserRepository) Delete(ctx context.Context, userID string) error {
 
 	result, err := r.db.ExecContext(ctx, query, userID)
 	if err != nil {
-		return fmt.Errorf("postgres: user deletion failed - %w", err)
+		return err
 	}
 
 	rows, _ := result.RowsAffected()

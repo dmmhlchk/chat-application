@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// ___ Helpers _________________________________________________________________
+// __Helpers _________________________________________________________________
 func newSignInUC(
 	uuidProv *mockIDGenerator,
 	userRepo *mockUserRepository,
@@ -47,7 +47,7 @@ func fakeUser() *domain.User {
 	}
 }
 
-// ___ Tests _________________________________________________________________
+// __Tests _________________________________________________________________
 func TestSignIn_Success(t *testing.T) {
 	ctx := context.Background()
 

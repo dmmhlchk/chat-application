@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// ___ Helpers _________________________________________________________________
+// __Helpers _________________________________________________________________
 func newSignUpConfirmUC(
 	uuidProvider *mockIDGenerator,
 	userRepo *mockUserRepository,
@@ -30,7 +30,7 @@ func validSignUpConfirmInput() usecase.SignUpConfirmInput {
 	}
 }
 
-// ___ Tests _________________________________________________________________
+// __Tests _________________________________________________________________
 func TestSignUpConfirm_Success(t *testing.T) {
 	ctx := context.Background()
 

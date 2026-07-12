@@ -16,17 +16,17 @@ type GroupUserDeletionInput struct {
 
 // 2. Determine the dependencies
 type GroupUserDeletion struct {
-	participantRepo repository.ParticipantRepository
+	chatRepo repository.ChatRepository
 }
 
-func NewGroupUserDeletion(participantRepo repository.ParticipantRepository) *GroupDeletion {
-	return &GroupDeletion{participantRepo: participantRepo}
+func NewGroupUserDeletion(chatRepo repository.ChatRepository) *GroupDeletion {
+	return &GroupDeletion{chatRepo: chatRepo}
 }
 
 // 3. Business flow of user Deletion a group chat
 func (uc *GroupUserDeletion) Execute(ctx context.Context, input GroupUserDeletionInput) error {
-	// 1. Check user permission
-	hasRight, err := uc.participantRepo.CheckPermissions(ctx, input.ChatID, input.GranterID, string(domain.UserPermissionDeleteUser))
+	// Check user permission
+	hasRight, err := uc.chatRepo.CheckPermissions(ctx, input.ChatID, input.GranterID, string(domain.UserPermissionDeleteUser))
 	if err != nil {
 		return fmt.Errorf("failed to check user permissions: %w", err)
 	}
@@ -34,9 +34,9 @@ func (uc *GroupUserDeletion) Execute(ctx context.Context, input GroupUserDeletio
 		return domain.ErrHasNoRight
 	}
 
-	err = uc.participantRepo.Leave(ctx, input.ChatID, input.UserIDs...)
-	if err != nil {
-		return fmt.Errorf("failed to leave a group chat: %w", err)
+	// Remove users
+	if err := uc.chatRepo.Leave(ctx, input.ChatID, input.UserIDs...); err != nil {
+		return fmt.Errorf("failed to remove users from the group: %w", err)
 	}
 
 	return nil

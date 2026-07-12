@@ -21,6 +21,7 @@ func (h *BcryptHasher) Hash(password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return string(bytes), nil
 }
 
@@ -30,7 +31,9 @@ func (h *BcryptHasher) Compare(hashedPassword, password string) (bool, error) {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
 			return false, nil // Valid check, passwords just didn't match
 		}
+
 		return false, err // Internal system exception
 	}
+
 	return true, nil
 }

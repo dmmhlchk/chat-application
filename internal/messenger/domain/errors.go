@@ -33,12 +33,20 @@ func IsKind(err error, kind Kind) bool {
 	return errors.As(err, &de) && de.Kind == kind
 }
 
-// ___ Chat _________________________________________________________________
+//
+//
+//
+//
+// __Chat _________________________________________________________________
 var (
 	ErrChatNotFound = newErr(KindNotFound, "chat not found")
 )
 
-// ___ Participant __________________________________________________________
+//
+//
+//
+//
+// __Participant __________________________________________________________
 var (
 	ErrHasNoRight = newErr(KindNotFound, "user has no right")
 )

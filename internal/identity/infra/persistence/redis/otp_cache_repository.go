@@ -22,12 +22,13 @@ func NewOTPCacheRepository(client *redis.Client) repository.OTPCacheRepository {
 	return &OTPCacheRepository{client: client}
 }
 
+// __Write methods _________________________________________________________________
 func (r *OTPCacheRepository) Save(ctx context.Context, phone string, code string, ttl time.Duration) error {
 	key := r.clearKey(phone)
 
 	err := r.client.Set(ctx, key, code, ttl).Err()
 	if err != nil {
-		return fmt.Errorf("redis: set otp by phone and code failed - %w", err)
+		return err
 	}
 
 	return nil
@@ -42,7 +43,7 @@ func (r *OTPCacheRepository) Verify(ctx context.Context, phone string, code stri
 			return false, domain.ErrOTPExpired
 		}
 
-		return false, fmt.Errorf("redis: verify otp by phone and code failed - %w", err)
+		return false, err
 	}
 	if resCode != code {
 		return false, domain.ErrOTPInvalid
@@ -56,16 +57,13 @@ func (r *OTPCacheRepository) Delete(ctx context.Context, phone string) error {
 
 	err := r.client.Del(ctx, key).Err()
 	if err != nil {
-		return fmt.Errorf("redis: delete otp by phone failed - %w", err)
+		return err
 	}
 
 	return nil
 }
 
-// -------------------------------------------------------------------------------------------------
-// --		Helpers
-// -------------------------------------------------------------------------------------------------
-
+// __Helpers _________________________________________________________________
 func (r *OTPCacheRepository) clearKey(phone string) string {
 	return fmt.Sprintf("otp:%s", phone)
 }

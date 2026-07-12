@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"chat-app/internal/messenger/application/generator"
@@ -22,20 +21,17 @@ type DirectCreationOutput struct {
 
 // 2. Determine the dependencies
 type DirectCreation struct {
-	idGen           generator.IDGenerator
-	participantRepo repository.ParticipantRepository
-	chatRepo        repository.ChatRepository
+	idGen    generator.IDGenerator
+	chatRepo repository.ChatRepository
 }
 
 func NewDirectCreation(
 	idGen generator.IDGenerator,
-	participantRepo repository.ParticipantRepository,
 	chatRepo repository.ChatRepository,
 ) *DirectCreation {
 	return &DirectCreation{
-		idGen:           idGen,
-		participantRepo: participantRepo,
-		chatRepo:        chatRepo,
+		idGen:    idGen,
+		chatRepo: chatRepo,
 	}
 }
 
@@ -44,27 +40,24 @@ func (uc *DirectCreation) Execute(ctx context.Context, input DirectCreationInput
 
 	userIDs := []string{input.UserID1, input.UserID2}
 
-	// 1. Check if a chat has been already created between these users
-	exists, err := uc.chatRepo.ExistsDirectBetween(ctx, userIDs...)
+	// Check if a chat has been already created between these users
+	chat, err := uc.chatRepo.FindDirectBetween(ctx, userIDs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify chat: %w", err)
 	}
-	if exists {
-		return nil, errors.New("failed to create a direct chat: another one already created")
+	if chat != nil {
+		return &DirectCreationOutput{ChatID: chat.ID}, nil
 	}
 
-	// 2. Create a direct chat
+	// Create a direct chat
 	chatID := uc.idGen.Generate()
-
-	chat := domain.NewChat(chatID, "direct")
-	err = uc.chatRepo.Create(ctx, chat)
-	if err != nil {
+	chat = domain.NewChat(chatID, "direct")
+	if err := uc.chatRepo.Create(ctx, chat); err != nil {
 		return nil, fmt.Errorf("failed to create chat: %w", err)
 	}
 
-	// 3. Join all members
-	err = uc.participantRepo.Join(ctx, chatID, userIDs...)
-	if err != nil {
+	// Join all members
+	if err := uc.chatRepo.Join(ctx, chatID, userIDs...); err != nil {
 		_ = uc.chatRepo.Delete(ctx, chatID)
 		return nil, fmt.Errorf("failed to join members: %w", err)
 	}

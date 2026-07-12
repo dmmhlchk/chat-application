@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// ___ Helpers _________________________________________________________________
+// __Helpers _________________________________________________________________
 func newSessionRepoMock(t *testing.T) (*postgres.SessionRepository, sqlmock.Sqlmock) {
 	t.Helper()
 
@@ -76,7 +76,7 @@ func newTestSession(userID string) *domain.Session {
 	}
 }
 
-// ___ Tests _________________________________________________________________
+// __Tests _________________________________________________________________
 func TestSessionRepository_FindAllByUserID(t *testing.T) {
 	t.Run("returns multiple sessions", func(t *testing.T) {
 		repo, mock := newSessionRepoMock(t)

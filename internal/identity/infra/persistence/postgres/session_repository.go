@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"chat-app/internal/identity/application/repository"
 	"chat-app/internal/identity/domain"
@@ -20,10 +19,7 @@ func NewSessionRepository(db *sql.DB) repository.SessionRepository {
 	return &SessionRepository{db: db}
 }
 
-// -------------------------------------------------------------------------------------------------
-// --		Read methods
-// -------------------------------------------------------------------------------------------------
-
+// __Read methods _________________________________________________________________
 func (r *SessionRepository) FindAllByUserID(ctx context.Context, userID string) ([]domain.Session, error) {
 	query := `
 		select 
@@ -41,7 +37,7 @@ func (r *SessionRepository) FindAllByUserID(ctx context.Context, userID string) 
 
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
-		return nil, fmt.Errorf("postgres: find all sessions by user id failed - %w", err)
+		return nil, err
 	}
 
 	defer rows.Close()
@@ -58,14 +54,14 @@ func (r *SessionRepository) FindAllByUserID(ctx context.Context, userID string) 
 			&s.ExpiresAt, &s.IsRevoked,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("postgres: scanning session row failed - %w", err)
+			return nil, err
 		}
 
 		sessions = append(sessions, s)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, fmt.Errorf("postgres: rows iteration error - %w", err)
+		return nil, err
 	}
 
 	return sessions, nil
@@ -99,16 +95,13 @@ func (r *SessionRepository) FindBySessionID(ctx context.Context, sessionID strin
 			return nil, domain.ErrSessionNotFound
 		}
 
-		return nil, fmt.Errorf("postgres: find session by id failed - %w", err)
+		return nil, err
 	}
 
 	return &s, nil
 }
 
-// -------------------------------------------------------------------------------------------------
-// --		Write methods
-// -------------------------------------------------------------------------------------------------
-
+// __Write methods _________________________________________________________________
 func (r *SessionRepository) Create(ctx context.Context, s *domain.Session) error {
 	query := `
 		insert into sessions 
@@ -142,7 +135,7 @@ func (r *SessionRepository) Create(ctx context.Context, s *domain.Session) error
 	)
 
 	if err != nil {
-		return fmt.Errorf("postgres: session insertion failed - %w", err)
+		return err
 	}
 
 	return nil
@@ -181,7 +174,7 @@ func (r *SessionRepository) Update(ctx context.Context, s *domain.Session) error
 	)
 
 	if err != nil {
-		return fmt.Errorf("postgres: session modification failed: %w", err)
+		return err
 	}
 
 	rows, _ := result.RowsAffected()
@@ -201,7 +194,7 @@ func (r *SessionRepository) TerminateAllByUserID(ctx context.Context, userID str
 	result, err := r.db.ExecContext(ctx, query, userID)
 
 	if err != nil {
-		return fmt.Errorf("postgres: terminate all session by user id failed - %w", err)
+		return err
 	}
 
 	rows, _ := result.RowsAffected()
@@ -221,7 +214,7 @@ func (r *SessionRepository) TerminateBySessionID(ctx context.Context, sessionID 
 	result, err := r.db.ExecContext(ctx, query, sessionID)
 
 	if err != nil {
-		return fmt.Errorf("postgres: terminate session by id failed - %w", err)
+		return err
 	}
 
 	rows, _ := result.RowsAffected()

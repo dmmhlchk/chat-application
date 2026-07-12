@@ -8,7 +8,6 @@ import (
 	"chat-app/internal/identity/application/security"
 )
 
-// Compile-time interface guard
 var _ security.OTPGenerator = (*SecureOTPGenerator)(nil)
 
 type SecureOTPGenerator struct{}
@@ -30,7 +29,7 @@ func (g *SecureOTPGenerator) Generate(length int) (string, error) {
 	for i := 0; i < length; i++ {
 		idx, err := rand.Int(rand.Reader, maxIdx)
 		if err != nil {
-			return "", fmt.Errorf("failed to generate random secure digit: %w", err)
+			return "", err
 		}
 		otp[i] = digits[idx.Int64()]
 	}

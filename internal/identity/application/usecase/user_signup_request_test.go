@@ -13,7 +13,7 @@ import (
 	"chat-app/internal/identity/domain"
 )
 
-// ___ Helpers _________________________________________________________________
+// __Helpers _________________________________________________________________
 func newSignUpRequestUC(
 	userReader *mockUserReader,
 	publisher *mockEventPublisher,
@@ -23,7 +23,7 @@ func newSignUpRequestUC(
 	return usecase.NewSignUpRequest(userReader, publisher, otpGen, otpRepo)
 }
 
-// ___ Tests _________________________________________________________________
+// __Tests _________________________________________________________________
 func TestSignUpRequest_Success(t *testing.T) {
 	ctx := context.Background()
 

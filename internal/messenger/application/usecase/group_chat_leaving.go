@@ -14,18 +14,17 @@ type GroupLeavingInput struct {
 
 // 2. Determine the dependencies
 type GroupLeaving struct {
-	participantRepo repository.ParticipantRepository
+	chatRepo repository.ChatRepository
 }
 
-func NewGroupLeaving(participantRepo repository.ParticipantRepository) *GroupLeaving {
-	return &GroupLeaving{participantRepo: participantRepo}
+func NewGroupLeaving(chatRepo repository.ChatRepository) *GroupLeaving {
+	return &GroupLeaving{chatRepo: chatRepo}
 }
 
 // 3. Business flow of user leaving a group chat
 func (uc *GroupLeaving) Execute(ctx context.Context, input GroupLeavingInput) error {
-	// 1. Leaving a group chat
-	err := uc.participantRepo.Leave(ctx, input.ChatID, input.UserID)
-	if err != nil {
+	// Leaving a group chat
+	if err := uc.chatRepo.Leave(ctx, input.ChatID, input.UserID); err != nil {
 		return fmt.Errorf("failed to leave a group chat: %w", err)
 	}
 
